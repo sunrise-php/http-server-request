@@ -1,0 +1,36 @@
+{
+	"name": "sunrise/http-server-request",
+	"description": "Sunrise HTTP Server Request",
+	"keywords": ["fenric", "sunrise", "http-server-request", "psr-7", "psr-17"],
+	"homepage": "https://github.com/sunrise-php/http-server-request",
+	"license": "MIT",
+	"authors": [{
+		"name": "Anatoly Fenric",
+		"email": "anatoly@fenric.ru",
+		"homepage": "https://anatoly.fenric.ru/"
+	}],
+	"require": {
+		"php": "^7.2",
+		"psr/http-factory": "^1.0",
+		"psr/http-message": "^1.0",
+		"sunrise/http-message": "^1.0",
+		"sunrise/stream": "^1.0",
+		"sunrise/uri": "^1.0"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "7.4.3"
+	},
+	"autoload": {
+		"psr-4": {
+			"Sunrise\\Http\\ServerRequest\\": "src/"
+		},
+		"files": [
+			"functions/request_body.php",
+			"functions/request_files.php",
+			"functions/request_headers.php",
+			"functions/request_http_version.php",
+			"functions/request_method.php",
+			"functions/request_uri.php"
+		]
+	}
+}
