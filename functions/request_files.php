@@ -14,7 +14,6 @@ namespace Sunrise\Http\ServerRequest;
 /**
  * Import classes
  */
-use Sunrise\Http\ServerRequest\UploadedFileFactory;
 use Sunrise\Stream\StreamFactory;
 
 /**
