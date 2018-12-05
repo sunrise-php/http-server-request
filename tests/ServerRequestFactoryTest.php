@@ -20,32 +20,63 @@ class ServerRequestFactoryTest extends TestCase
 	{
 		$method = 'GET';
 		$uri = 'http://localhost:3000/';
-		$serverParams = $_SERVER;
+		$server = $_SERVER;
 
-		$request = (new ServerRequestFactory)->createServerRequest($method, $uri, $serverParams);
+		$request = (new ServerRequestFactory)->createServerRequest($method, $uri, $server);
 
 		$this->assertInstanceOf(ServerRequestInterface::class, $request);
 		$this->assertEquals($method, $request->getMethod());
 		$this->assertEquals($uri, (string) $request->getUri());
-		$this->assertEquals($serverParams, $request->getServerParams());
+		$this->assertEquals($server, $request->getServerParams());
 	}
 
-	public function testFilesFromGlobals()
+	public function testCreateServerRequestFromGlobals()
 	{
-		$foo = \tempnam(\sys_get_temp_dir(), 'sunrise.php');
-		$bar = \tempnam(\sys_get_temp_dir(), 'sunrise.php');
+		$request = ServerRequestFactory::fromGlobals([], [], [], [], []);
+		$this->assertInstanceOf(ServerRequestInterface::class, $request);
+	}
 
-		\file_put_contents($foo, 'foo');
-		\file_put_contents($bar, 'bar');
+	public function testCreateServerRequestFromGlobalsWithServer()
+	{
+		$server = ['foo' => 'bar'];
+		$request = ServerRequestFactory::fromGlobals($server, [], [], [], []);
+		$this->assertEquals($server, $request->getServerParams());
+	}
+
+	public function testCreateServerRequestFromGlobalsWithQuery()
+	{
+		$query = ['foo' => 'bar'];
+		$request = ServerRequestFactory::fromGlobals([], $query, [], [], []);
+		$this->assertEquals($query, $request->getQueryParams());
+	}
+
+	public function testCreateServerRequestFromGlobalsWithBody()
+	{
+		$body = ['foo' => 'bar'];
+		$request = ServerRequestFactory::fromGlobals([], [], $body, [], []);
+		$this->assertEquals($body, $request->getParsedBody());
+	}
+
+	public function testCreateServerRequestFromGlobalsWithCookies()
+	{
+		$cookies = ['foo' => 'bar'];
+		$request = ServerRequestFactory::fromGlobals([], [], [], $cookies, []);
+		$this->assertEquals($cookies, $request->getCookieParams());
+	}
+
+	public function testCreateServerRequestFromGlobalsWithFiles()
+	{
+		$foo = \tempnam(\sys_get_temp_dir(), 'sunrise');
+		$bar = \tempnam(\sys_get_temp_dir(), 'sunrise');
 
 		$files['foo']['tmp_name'] = $foo;
-		$files['foo']['size'] = 3;
+		$files['foo']['size'] = 0;
 		$files['foo']['error'] = \UPLOAD_ERR_OK;
 		$files['foo']['name'] = 'foo.txt';
 		$files['foo']['type'] = 'text/plain';
 
 		$files['bar']['tmp_name'][0] = $bar;
-		$files['bar']['size'][0] = 3;
+		$files['bar']['size'][0] = 0;
 		$files['bar']['error'][0] = \UPLOAD_ERR_OK;
 		$files['bar']['name'][0] = 'bar.txt';
 		$files['bar']['type'][0] = 'text/plain';
@@ -53,8 +84,17 @@ class ServerRequestFactoryTest extends TestCase
 		$request = ServerRequestFactory::fromGlobals([], [], [], [], $files);
 		$uploadedFiles = $request->getUploadedFiles();
 
-		$this->assertEquals('foo', (string) $uploadedFiles['foo']->getStream());
-		$this->assertEquals('bar', (string) $uploadedFiles['bar'][0]->getStream());
+		$this->assertEquals($files['foo']['tmp_name'], $uploadedFiles['foo']->getStream()->getMetadata('uri'));
+		$this->assertEquals($files['foo']['size'], $uploadedFiles['foo']->getSize());
+		$this->assertEquals($files['foo']['error'], $uploadedFiles['foo']->getError());
+		$this->assertEquals($files['foo']['name'], $uploadedFiles['foo']->getClientFilename());
+		$this->assertEquals($files['foo']['type'], $uploadedFiles['foo']->getClientMediaType());
+
+		$this->assertEquals($files['bar']['tmp_name'][0], $uploadedFiles['bar'][0]->getStream()->getMetadata('uri'));
+		$this->assertEquals($files['bar']['size'][0], $uploadedFiles['bar'][0]->getSize());
+		$this->assertEquals($files['bar']['error'][0], $uploadedFiles['bar'][0]->getError());
+		$this->assertEquals($files['bar']['name'][0], $uploadedFiles['bar'][0]->getClientFilename());
+		$this->assertEquals($files['bar']['type'][0], $uploadedFiles['bar'][0]->getClientMediaType());
 
 		@ \unlink($foo);
 		@ \unlink($bar);
