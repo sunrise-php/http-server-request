@@ -30,11 +30,11 @@ class ServerRequestFactory implements ServerRequestFactoryInterface
 	/**
 	 * Creates the server request instance from superglobals variables
 	 *
-	 * @param array $server
-	 * @param array $query
-	 * @param array $body
-	 * @param array $cookies
-	 * @param array $files
+	 * @param null|array $server
+	 * @param null|array $query
+	 * @param null|array $body
+	 * @param null|array $cookies
+	 * @param null|array $files
 	 *
 	 * @return ServerRequestInterface
 	 *
