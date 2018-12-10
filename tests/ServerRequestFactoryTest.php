@@ -5,6 +5,7 @@ namespace Sunrise\Http\ServerRequest\Tests;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestFactoryInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\StreamInterface;
 use Sunrise\Http\ServerRequest\ServerRequestFactory;
 
 class ServerRequestFactoryTest extends TestCase
@@ -28,6 +29,13 @@ class ServerRequestFactoryTest extends TestCase
 		$this->assertEquals($method, $request->getMethod());
 		$this->assertEquals($uri, (string) $request->getUri());
 		$this->assertEquals($server, $request->getServerParams());
+
+		// default body of the request...
+		$this->assertInstanceOf(StreamInterface::class, $request->getBody());
+		$this->assertTrue($request->getBody()->isSeekable());
+		$this->assertTrue($request->getBody()->isWritable());
+		$this->assertTrue($request->getBody()->isReadable());
+		$this->assertEquals('php://temp', $request->getBody()->getMetadata('uri'));
 	}
 
 	public function testCreateServerRequestFromGlobals()
