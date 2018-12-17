@@ -88,7 +88,7 @@ class UploadedFileTest extends TestCase
 	{
 		$uploadedFile = new UploadedFile($this->stream);
 
-		$this->assertEquals(null, $uploadedFile->getSize());
+		$this->assertEquals($this->stream->getSize(), $uploadedFile->getSize());
 	}
 
 	public function testGetDefaultError()

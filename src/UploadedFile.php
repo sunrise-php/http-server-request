@@ -74,7 +74,7 @@ class UploadedFile implements UploadedFileInterface
 	{
 		$this->stream = $stream;
 
-		$this->size = $size;
+		$this->size = $size ?? $stream->getSize();
 
 		$this->error = $error;
 

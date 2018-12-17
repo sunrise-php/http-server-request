@@ -39,7 +39,7 @@ class UploadedFileFactoryTest extends TestCase
 
 		$this->assertInstanceOf(UploadedFileInterface::class, $uploadedFile);
 		$this->assertEquals($this->stream, $uploadedFile->getStream());
-		$this->assertEquals(null, $uploadedFile->getSize());
+		$this->assertEquals($this->stream->getSize(), $uploadedFile->getSize());
 		$this->assertEquals(\UPLOAD_ERR_OK, $uploadedFile->getError());
 		$this->assertEquals(null, $uploadedFile->getClientFilename());
 		$this->assertEquals(null, $uploadedFile->getClientMediaType());
