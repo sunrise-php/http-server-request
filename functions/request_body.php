@@ -22,17 +22,15 @@ use Sunrise\Stream\StreamFactory;
  *
  * MUST NOT be used outside of this package.
  *
- * @param string $filename
- *
  * @return StreamInterface
  *
  * @link http://php.net/manual/en/wrappers.php.php
  */
-function request_body(string $filename) : StreamInterface
+function request_body() : StreamInterface
 {
 	$resource = \fopen('php://temp', 'r+b');
 
-	\stream_copy_to_stream(\fopen($filename, 'rb'), $resource);
+	\stream_copy_to_stream(\fopen('php://input', 'rb'), $resource);
 
 	\rewind($resource);
 

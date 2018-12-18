@@ -143,7 +143,7 @@ class UploadedFileTest extends TestCase
 		$uploadedFile->moveTo($this->targetPath);
 
 		$this->expectException(\RuntimeException::class);
-		$this->expectExceptionMessage('The uploaded file already moved.');
+		$this->expectExceptionMessage('The uploaded file already moved');
 
 		$uploadedFile->getStream();
 	}
@@ -154,7 +154,7 @@ class UploadedFileTest extends TestCase
 		$uploadedFile->moveTo($this->targetPath);
 
 		$this->expectException(\RuntimeException::class);
-		$this->expectExceptionMessage('The uploaded file already moved.');
+		$this->expectExceptionMessage('The uploaded file already moved');
 
 		$uploadedFile->moveTo($this->targetPath);
 	}
@@ -167,7 +167,7 @@ class UploadedFileTest extends TestCase
 		$uploadedFile = new UploadedFile($this->stream, null, $error);
 
 		$this->expectException(\RuntimeException::class);
-		$this->expectExceptionMessage('The uploaded file cannot be moved due to an error.');
+		$this->expectExceptionMessage('The uploaded file cannot be moved due to an error');
 
 		$uploadedFile->moveTo($this->targetPath);
 	}
@@ -191,7 +191,7 @@ class UploadedFileTest extends TestCase
 		$uploadedFile = new UploadedFile($this->stream);
 
 		$this->expectException(\RuntimeException::class);
-		$this->expectExceptionMessage(\sprintf('The uploaded file cannot be moved. The directory "%s" does not exist.', $this->targetPath));
+		$this->expectExceptionMessage(\sprintf('The uploaded file cannot be moved. The directory "%s" does not exist', $this->targetPath));
 
 		$uploadedFile->moveTo($targetPath);
 	}

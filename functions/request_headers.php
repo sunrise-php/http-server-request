@@ -12,7 +12,7 @@
 namespace Sunrise\Http\ServerRequest;
 
 /**
- * Gets the request headers
+ * Gets the request headers from the given server environment
  *
  * MUST NOT be used outside of this package.
  *

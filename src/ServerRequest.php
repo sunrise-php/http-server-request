@@ -152,7 +152,7 @@ class ServerRequest extends Request implements ServerRequestInterface
 		{
 			if (! ($uploadedFile instanceof UploadedFileInterface))
 			{
-				throw new \InvalidArgumentException('Invalid uploaded files structure.');
+				throw new \InvalidArgumentException('Invalid uploaded files structure');
 			}
 		});
 

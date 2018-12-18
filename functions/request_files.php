@@ -17,7 +17,7 @@ namespace Sunrise\Http\ServerRequest;
 use Sunrise\Stream\StreamFactory;
 
 /**
- * Gets the request files
+ * Normalizes the given uploaded files
  *
  * MUST NOT be used outside of this package.
  *

@@ -16,6 +16,8 @@ class UploadedFileFactoryTest extends TestCase
 	public function setUp()
 	{
 		$this->stream = (new StreamFactory)->createStreamFromFile('php://memory', 'r+b');
+
+		$this->stream->write('foo');
 	}
 
 	public function tearDown()

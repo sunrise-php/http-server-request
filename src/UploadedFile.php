@@ -90,7 +90,7 @@ class UploadedFile implements UploadedFileInterface
 	{
 		if (! ($this->stream instanceof StreamInterface))
 		{
-			throw new \RuntimeException('The uploaded file already moved.');
+			throw new \RuntimeException('The uploaded file already moved');
 		}
 
 		return $this->stream;
@@ -103,24 +103,24 @@ class UploadedFile implements UploadedFileInterface
 	{
 		if (! ($this->stream instanceof StreamInterface))
 		{
-			throw new \RuntimeException('The uploaded file already moved.');
+			throw new \RuntimeException('The uploaded file already moved');
 		}
 
 		if (! (\UPLOAD_ERR_OK === $this->error))
 		{
-			throw new \RuntimeException('The uploaded file cannot be moved due to an error.');
+			throw new \RuntimeException('The uploaded file cannot be moved due to an error');
 		}
 
 		$folder = \dirname($targetPath);
 
 		if (! \is_dir($folder))
 		{
-			throw new \RuntimeException(\sprintf('The uploaded file cannot be moved. The directory "%s" does not exist.', $folder));
+			throw new \RuntimeException(\sprintf('The uploaded file cannot be moved. The directory "%s" does not exist', $folder));
 		}
 
 		if (! \is_writeable($folder))
 		{
-			throw new \RuntimeException(\sprintf('The uploaded file cannot be moved. The directory "%s" is not writeable.', $folder));
+			throw new \RuntimeException(\sprintf('The uploaded file cannot be moved. The directory "%s" is not writeable', $folder));
 		}
 
 		$target = (new StreamFactory)->createStreamFromFile($targetPath, 'wb');

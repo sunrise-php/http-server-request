@@ -18,7 +18,7 @@ use Psr\Http\Message\UriInterface;
 use Sunrise\Uri\UriFactory;
 
 /**
- * Gets the request URI
+ * Gets the request URI from the given server environment
  *
  * MUST NOT be used outside of this package.
  *

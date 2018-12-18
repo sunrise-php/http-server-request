@@ -52,7 +52,7 @@ class ServerRequestFactory implements ServerRequestFactoryInterface
 
 		$request = (new ServerRequest)
 		->withProtocolVersion(request_http_version($server))
-		->withBody(request_body('php://input'))
+		->withBody(request_body())
 		->withMethod(request_method($server))
 		->withUri(request_uri($server))
 		->withServerParams($server)
