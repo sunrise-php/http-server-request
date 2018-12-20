@@ -10,6 +10,8 @@ use Sunrise\Http\ServerRequest\ServerRequestFactory;
 
 class ServerRequestFactoryTest extends TestCase
 {
+	private $tmpfiles = [];
+
 	public function testConstructor()
 	{
 		$factory = new ServerRequestFactory();
@@ -38,10 +40,27 @@ class ServerRequestFactoryTest extends TestCase
 		$this->assertEquals('php://temp', $request->getBody()->getMetadata('uri'));
 	}
 
+	/**
+	 * @runInSeparateProcess
+	 */
 	public function testCreateServerRequestFromGlobals()
 	{
-		$request = ServerRequestFactory::fromGlobals([], [], [], [], []);
+		$file = ['tmp_name' => $this->tmpfile(), 'size' => 0, 'error' => \UPLOAD_ERR_OK, 'name' => '', 'type' => ''];
+
+		$_SERVER = ['foo'  => 'bar'];
+		$_GET    = ['bar'  => 'baz'];
+		$_POST   = ['baz'  => 'qux'];
+		$_COOKIE = ['qux'  => 'quux'];
+		$_FILES  = ['quux' => $file];
+
+		$request = ServerRequestFactory::fromGlobals();
 		$this->assertInstanceOf(ServerRequestInterface::class, $request);
+
+		$this->assertEquals($_SERVER, $request->getServerParams());
+		$this->assertEquals($_GET, $request->getQueryParams());
+		$this->assertEquals($_POST, $request->getParsedBody());
+		$this->assertEquals($_COOKIE, $request->getCookieParams());
+		$this->assertEquals($_FILES['quux']['tmp_name'], $request->getUploadedFiles()['quux']->getStream()->getMetadata('uri'));
 	}
 
 	public function testCreateServerRequestFromGlobalsWithServer()
@@ -74,16 +93,13 @@ class ServerRequestFactoryTest extends TestCase
 
 	public function testCreateServerRequestFromGlobalsWithFiles()
 	{
-		$foo = \tempnam(\sys_get_temp_dir(), 'sunrise');
-		$bar = \tempnam(\sys_get_temp_dir(), 'sunrise');
-
-		$files['foo']['tmp_name'] = $foo;
+		$files['foo']['tmp_name'] = $this->tmpfile();
 		$files['foo']['size'] = 0;
 		$files['foo']['error'] = \UPLOAD_ERR_OK;
 		$files['foo']['name'] = 'foo.txt';
 		$files['foo']['type'] = 'text/plain';
 
-		$files['bar']['tmp_name'][0] = $bar;
+		$files['bar']['tmp_name'][0] = $this->tmpfile();
 		$files['bar']['size'][0] = 0;
 		$files['bar']['error'][0] = \UPLOAD_ERR_OK;
 		$files['bar']['name'][0] = 'bar.txt';
@@ -103,9 +119,6 @@ class ServerRequestFactoryTest extends TestCase
 		$this->assertEquals($files['bar']['error'][0], $uploadedFiles['bar'][0]->getError());
 		$this->assertEquals($files['bar']['name'][0], $uploadedFiles['bar'][0]->getClientFilename());
 		$this->assertEquals($files['bar']['type'][0], $uploadedFiles['bar'][0]->getClientMediaType());
-
-		@ \unlink($foo);
-		@ \unlink($bar);
 	}
 
 	public function testHeadersFromGlobals()
@@ -175,5 +188,28 @@ class ServerRequestFactoryTest extends TestCase
 
 		$request = ServerRequestFactory::fromGlobals(['QUERY_STRING' => 'query']);
 		$this->assertEquals('http://localhost/', (string) $request->getUri());
+	}
+
+	public function tearDown()
+	{
+		$tmpfiles = $this->tmpfiles;
+
+		$this->tmpfiles = [];
+
+		foreach ($tmpfiles as $tmpfile)
+		{
+			@ \unlink($tmpfile);
+		}
+	}
+
+	private function tmpfile() : string
+	{
+		$folder = \sys_get_temp_dir();
+
+		$tmpfile = \tempnam($folder, 'sunrise');
+
+		$this->tmpfiles[] = $tmpfile;
+
+		return $tmpfile;
 	}
 }
