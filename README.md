@@ -4,7 +4,7 @@
 [![Build Status](https://api.travis-ci.com/sunrise-php/http-server-request.svg?branch=master)](https://travis-ci.com/sunrise-php/http-server-request)
 [![CodeFactor](https://www.codefactor.io/repository/github/sunrise-php/http-server-request/badge)](https://www.codefactor.io/repository/github/sunrise-php/http-server-request)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/sunrise-php/http-server-request/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/sunrise-php/http-server-request/?branch=master)
-[![Code Intelligence Status](https://scrutinizer-ci.com/g/sunrise-php/http-server-request/badges/code-intelligence.svg?b=master)](https://scrutinizer-ci.com/code-intelligence)
+[![Code Coverage](https://scrutinizer-ci.com/g/sunrise-php/http-server-request/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/sunrise-php/http-server-request/?branch=master)
 [![Latest Stable Version](https://poser.pugx.org/sunrise/http-server-request/v/stable)](https://packagist.org/packages/sunrise/http-server-request)
 [![Total Downloads](https://poser.pugx.org/sunrise/http-server-request/downloads)](https://packagist.org/packages/sunrise/http-server-request)
 [![License](https://poser.pugx.org/sunrise/http-server-request/license)](https://packagist.org/packages/sunrise/http-server-request)
