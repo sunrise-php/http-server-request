@@ -94,11 +94,11 @@ class ServerRequestTest extends TestCase
 	public function testParsedBody($parsedBody)
 	{
 		$req = new ServerRequest();
-		$this->assertEquals(null, $req->getParsedBody());
+		$this->assertNull($req->getParsedBody());
 
 		$clone = $req->withParsedBody($parsedBody);
 		$this->assertInstanceOf(ServerRequestInterface::class, $clone);
-		$this->assertEquals(null, $req->getParsedBody());
+		$this->assertNull($req->getParsedBody());
 		$this->assertEquals($parsedBody, $clone->getParsedBody());
 	}
 
@@ -124,8 +124,8 @@ class ServerRequestTest extends TestCase
 
 		$this->assertEquals('bar', $req->getAttribute('foo'));
 		$this->assertEquals('baz', $req->getAttribute('bar'));
-		$this->assertEquals(null, $req->getAttribute('baz'));
-		$this->assertEquals(false, $req->getAttribute('baz', false));
+		$this->assertNull($req->getAttribute('baz'));
+		$this->assertFalse($req->getAttribute('baz', false));
 	}
 
 	public function testDeleteAttribute()
@@ -137,12 +137,12 @@ class ServerRequestTest extends TestCase
 		$clone1 = $req->withoutAttribute('foo');
 		$this->assertInstanceOf(ServerRequestInterface::class, $clone1);
 		$this->assertEquals(['bar' => 'baz'], $clone1->getAttributes());
-		$this->assertEquals(null, $clone1->getAttribute('foo'));
+		$this->assertNull($clone1->getAttribute('foo'));
 
 		$clone2 = $clone1->withoutAttribute('bar');
 		$this->assertInstanceOf(ServerRequestInterface::class, $clone2);
 		$this->assertEquals([], $clone2->getAttributes());
-		$this->assertEquals(null, $clone2->getAttribute('bar'));
+		$this->assertNull($clone2->getAttribute('bar'));
 	}
 
 	// Providers...
