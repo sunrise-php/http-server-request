@@ -1,6 +1,6 @@
 {
     "name": "sunrise/http-server-request",
-    "description": "Sunrise HTTP Server Request",
+    "description": "Sunrise HTTP Server Request wrapper for PHP 7.1+ based on PSR-7 & PSR-17",
     "keywords": ["fenric", "sunrise", "http-server-request", "psr-7", "psr-17"],
     "homepage": "https://github.com/sunrise-php/http-server-request",
     "license": "MIT",
