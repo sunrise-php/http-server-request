@@ -121,76 +121,143 @@ class ServerRequestFactoryTest extends TestCase
 		$this->assertEquals($files['bar']['type'][0], $uploadedFiles['bar'][0]->getClientMediaType());
 	}
 
-	public function testHeadersFromGlobals()
+	public function headersFromGlobalsProvider()
 	{
-		$request = ServerRequestFactory::fromGlobals(['FOO' => 'bar']);
-		$this->assertEquals([], $request->getHeader('foo'));
-
-		$request = ServerRequestFactory::fromGlobals(['HTTP_FOO' => 'bar']);
-		$this->assertEquals(['bar'], $request->getHeader('foo'));
+		return [
+			[
+				['FOO' => 'bar'],
+				[],
+			],
+			[
+				['HTTP_FOO' => 'bar'],
+				['bar'],
+			],
+		];
 	}
 
-	public function testProtocolVersionFromGlobals()
+	/**
+	 * @dataProvider headersFromGlobalsProvider
+	 */
+	public function testHeadersFromGlobals($header, $expectedValue)
 	{
-		$request = ServerRequestFactory::fromGlobals(['SERVER_PROTOCOL' => 'HTTP/2.0']);
-		$this->assertEquals('2.0', $request->getProtocolVersion());
-
-		$request = ServerRequestFactory::fromGlobals(['SERVER_PROTOCOL' => 'HTTP/3']);
-		$this->assertEquals('3', $request->getProtocolVersion());
+		$request = ServerRequestFactory::fromGlobals($header);
+		$this->assertEquals($expectedValue, $request->getHeader('foo'));
 	}
 
-	public function testMethodFromGlobals()
+	public function protocolVersionFromGlobalsProvider()
 	{
-		$request = ServerRequestFactory::fromGlobals(['REQUEST_METHOD' => 'POST']);
-		$this->assertEquals('POST', $request->getMethod());
-
-		$request = ServerRequestFactory::fromGlobals(['REQUEST_METHOD' => 'UNKNOWN']);
-		$this->assertEquals('UNKNOWN', $request->getMethod());
+		return [
+			[
+				['SERVER_PROTOCOL' => 'HTTP/2.0'],
+				'2.0',
+			],
+			[
+				['SERVER_PROTOCOL' => 'HTTP/3'],
+				'3',
+			],
+		];
 	}
 
-	public function testUriFromGlobals()
+	/**
+	 * @dataProvider protocolVersionFromGlobalsProvider
+	 */
+	public function testProtocolVersionFromGlobals($protocolVersion, $expectedValue)
 	{
-		$request = ServerRequestFactory::fromGlobals([]);
-		$this->assertEquals('http://localhost/', (string) $request->getUri());
-
-		$request = ServerRequestFactory::fromGlobals(['HTTPS' => 'off']);
-		$this->assertEquals('http://localhost/', (string) $request->getUri());
-
-		$request = ServerRequestFactory::fromGlobals(['HTTPS' => 'on']);
-		$this->assertEquals('https://localhost/', (string) $request->getUri());
-
-		$request = ServerRequestFactory::fromGlobals(['HTTP_HOST' => 'example.com']);
-		$this->assertEquals('http://example.com/', (string) $request->getUri());
-
-		$request = ServerRequestFactory::fromGlobals(['HTTP_HOST' => 'example.com:3000']);
-		$this->assertEquals('http://example.com:3000/', (string) $request->getUri());
-
-		$request = ServerRequestFactory::fromGlobals(['SERVER_NAME' => 'example.com']);
-		$this->assertEquals('http://example.com/', (string) $request->getUri());
-
-		$request = ServerRequestFactory::fromGlobals(['SERVER_NAME' => 'example.com', 'SERVER_PORT' => 3000]);
-		$this->assertEquals('http://example.com:3000/', (string) $request->getUri());
-
-		$request = ServerRequestFactory::fromGlobals(['SERVER_PORT' => 3000]);
-		$this->assertEquals('http://localhost/', (string) $request->getUri());
-
-		$request = ServerRequestFactory::fromGlobals(['REQUEST_URI' => '/path']);
-		$this->assertEquals('http://localhost/path', (string) $request->getUri());
-
-		$request = ServerRequestFactory::fromGlobals(['REQUEST_URI' => '/path?query']);
-		$this->assertEquals('http://localhost/path?query', (string) $request->getUri());
-
-		$request = ServerRequestFactory::fromGlobals(['PHP_SELF' => '/path']);
-		$this->assertEquals('http://localhost/path', (string) $request->getUri());
-
-		$request = ServerRequestFactory::fromGlobals(['PHP_SELF' => '/path', 'QUERY_STRING' => 'query']);
-		$this->assertEquals('http://localhost/path?query', (string) $request->getUri());
-
-		$request = ServerRequestFactory::fromGlobals(['QUERY_STRING' => 'query']);
-		$this->assertEquals('http://localhost/', (string) $request->getUri());
+		$request = ServerRequestFactory::fromGlobals($protocolVersion);
+		$this->assertEquals($expectedValue, $request->getProtocolVersion());
 	}
 
-	public function tearDown()
+	public function methodFromGlobalsProvider()
+	{
+		return [
+			[
+				['REQUEST_METHOD' => 'POST'],
+				'POST',
+			],
+			[
+				['REQUEST_METHOD' => 'UNKNOWN'],
+				'UNKNOWN',
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider methodFromGlobalsProvider
+	 */
+	public function testMethodFromGlobals($requestMethod, $expectedValue)
+	{
+		$request = ServerRequestFactory::fromGlobals($requestMethod);
+		$this->assertEquals($expectedValue, $request->getMethod());
+	}
+
+	public function uriFromGlobalsProvider()
+	{
+		return [
+			[
+				[],
+				'http://localhost/',
+			],
+			[
+				['HTTPS' => 'off'],
+				'http://localhost/',
+			],
+			[
+				['HTTPS' => 'on'],
+				'https://localhost/',
+			],
+			[
+				['HTTP_HOST' => 'example.com'],
+				'http://example.com/',
+			],
+			[
+				['HTTP_HOST' => 'example.com:3000'],
+				'http://example.com:3000/',
+			],
+			[
+				['SERVER_NAME' => 'example.com'],
+				'http://example.com/',
+			],
+			[
+				['SERVER_NAME' => 'example.com', 'SERVER_PORT' => 3000],
+				'http://example.com:3000/',
+			],
+			[
+				['SERVER_PORT' => 3000],
+				'http://localhost/',
+			],
+			[
+				['REQUEST_URI' => '/path'],
+				'http://localhost/path',
+			],
+			[
+				['REQUEST_URI' => '/path?query'],
+				'http://localhost/path?query',
+			],
+			[
+				['PHP_SELF' => '/path'],
+				'http://localhost/path',
+			],
+			[
+				['PHP_SELF' => '/path', 'QUERY_STRING' => 'query'],
+				'http://localhost/path?query',
+			],
+			[
+				['QUERY_STRING' => 'query'],
+				'http://localhost/',
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider uriFromGlobalsProvider
+	 */
+	public function testUriFromGlobals($uri, $expectedValue)
+	{
+		$request = ServerRequestFactory::fromGlobals($uri);
+		$this->assertEquals($expectedValue, (string) $request->getUri());
+	}
+
+	protected function tearDown()
 	{
 		$tmpfiles = $this->tmpfiles;
 

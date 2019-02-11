@@ -14,14 +14,14 @@ class UploadedFileTest extends TestCase
 
 	private $targetPath = '';
 
-	public function setUp()
+	protected function setUp()
 	{
 		$this->stream = (new StreamFactory)->createStreamFromFile('php://memory', 'r+b');
 
 		$this->targetPath = \sys_get_temp_dir() . '/' . \bin2hex(\random_bytes(16));
 	}
 
-	public function tearDown()
+	protected function tearDown()
 	{
 		if ($this->stream instanceof StreamInterface)
 		{
@@ -102,14 +102,14 @@ class UploadedFileTest extends TestCase
 	{
 		$uploadedFile = new UploadedFile($this->stream);
 
-		$this->assertEquals(null, $uploadedFile->getClientFilename());
+		$this->assertNull($uploadedFile->getClientFilename());
 	}
 
 	public function testGetDefaultClientMediaType()
 	{
 		$uploadedFile = new UploadedFile($this->stream);
 
-		$this->assertEquals(null, $uploadedFile->getClientMediaType());
+		$this->assertNull($uploadedFile->getClientMediaType());
 	}
 
 	public function testMoveTo()
@@ -120,7 +120,7 @@ class UploadedFileTest extends TestCase
 		$uploadedFile = new UploadedFile($this->stream);
 		$uploadedFile->moveTo($this->targetPath);
 
-		$this->assertTrue(\file_exists($this->targetPath));
+		$this->assertFileExists($this->targetPath);
 		$this->assertEquals($content, \file_get_contents($this->targetPath));
 	}
 

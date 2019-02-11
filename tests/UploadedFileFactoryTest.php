@@ -43,8 +43,8 @@ class UploadedFileFactoryTest extends TestCase
 		$this->assertEquals($this->stream, $uploadedFile->getStream());
 		$this->assertEquals($this->stream->getSize(), $uploadedFile->getSize());
 		$this->assertEquals(\UPLOAD_ERR_OK, $uploadedFile->getError());
-		$this->assertEquals(null, $uploadedFile->getClientFilename());
-		$this->assertEquals(null, $uploadedFile->getClientMediaType());
+		$this->assertNull($uploadedFile->getClientFilename());
+		$this->assertNull($uploadedFile->getClientMediaType());
 	}
 
 	public function testCreateUploadedFileWithParameters()
