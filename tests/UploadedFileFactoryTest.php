@@ -13,14 +13,14 @@ class UploadedFileFactoryTest extends TestCase
 {
 	private $stream;
 
-	public function setUp()
+	protected function setUp()
 	{
 		$this->stream = (new StreamFactory)->createStreamFromFile('php://memory', 'r+b');
 
 		$this->stream->write('foo');
 	}
 
-	public function tearDown()
+	protected function tearDown()
 	{
 		if ($this->stream instanceof StreamInterface)
 		{
