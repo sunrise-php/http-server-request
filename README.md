@@ -2,7 +2,6 @@
 
 [![Gitter](https://badges.gitter.im/sunrise-php/support.png)](https://gitter.im/sunrise-php/support)
 [![Build Status](https://api.travis-ci.com/sunrise-php/http-server-request.svg?branch=master)](https://travis-ci.com/sunrise-php/http-server-request)
-[![CodeFactor](https://www.codefactor.io/repository/github/sunrise-php/http-server-request/badge)](https://www.codefactor.io/repository/github/sunrise-php/http-server-request)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/sunrise-php/http-server-request/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/sunrise-php/http-server-request/?branch=master)
 [![Code Coverage](https://scrutinizer-ci.com/g/sunrise-php/http-server-request/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/sunrise-php/http-server-request/?branch=master)
 [![Latest Stable Version](https://poser.pugx.org/sunrise/http-server-request/v/stable)](https://packagist.org/packages/sunrise/http-server-request)
@@ -11,7 +10,7 @@
 
 ## Installation
 
-```
+```bash
 composer require sunrise/http-server-request
 ```
 
@@ -37,8 +36,8 @@ https://phpdoc.fenric.ru/
 
 ## Useful links
 
-https://www.php-fig.org/psr/psr-7/<br>
-https://www.php-fig.org/psr/psr-17/
+* https://www.php-fig.org/psr/psr-7/
+* https://www.php-fig.org/psr/psr-17/
 
 ## Team
 
