@@ -17,6 +17,11 @@ namespace Sunrise\Http\ServerRequest;
 use Sunrise\Stream\StreamFactory;
 
 /**
+ * Import constants
+ */
+use const UPLOAD_ERR_NO_FILE;
+
+/**
  * Normalizes the given uploaded files
  *
  * MUST NOT be used outside of this package.
@@ -52,6 +57,10 @@ function request_files(array $files) : array
 
 	foreach ($files as $key => $file)
 	{
+		if (UPLOAD_ERR_NO_FILE === $file['error']) {
+			continue;
+		}
+
 		$result[$key] = $walker($file['tmp_name'], $file['size'], $file['error'], $file['name'], $file['type']);
 	}
 
