@@ -121,6 +121,23 @@ class ServerRequestFactoryTest extends TestCase
 		$this->assertEquals($files['bar']['type'][0], $uploadedFiles['bar'][0]->getClientMediaType());
 	}
 
+	public function testCreateServerRequestFromGlobalsWithUploadErrorNoFile()
+	{
+		$files = [
+			'foo' => [
+				'error' => \UPLOAD_ERR_NO_FILE,
+				'size' => 0,
+				'tmp_name' => '',
+				'name' => '',
+				'type' => '',
+			],
+		];
+
+		$request = ServerRequestFactory::fromGlobals([], [], [], [], $files);
+
+		$this->assertCount(0, $request->getUploadedFiles());
+	}
+
 	public function headersFromGlobalsProvider()
 	{
 		return [
