@@ -26,205 +26,196 @@ use Sunrise\Http\Message\Request;
 class ServerRequest extends Request implements ServerRequestInterface
 {
 
-	/**
-	 * The server parameters
-	 *
-	 * @var array
-	 */
-	protected $serverParams = [];
+    /**
+     * The server parameters
+     *
+     * @var array
+     */
+    protected $serverParams = [];
 
-	/**
-	 * The request cookie parameters
-	 *
-	 * @var array
-	 */
-	protected $cookieParams = [];
+    /**
+     * The request cookie parameters
+     *
+     * @var array
+     */
+    protected $cookieParams = [];
 
-	/**
-	 * The request query parameters
-	 *
-	 * @var array
-	 */
-	protected $queryParams = [];
+    /**
+     * The request query parameters
+     *
+     * @var array
+     */
+    protected $queryParams = [];
 
-	/**
-	 * The request uploaded files
-	 *
-	 * @var array
-	 */
-	protected $uploadedFiles = [];
+    /**
+     * The request uploaded files
+     *
+     * @var array
+     */
+    protected $uploadedFiles = [];
 
-	/**
-	 * The request parsed body
-	 *
-	 * @var mixed
-	 */
-	protected $parsedBody;
+    /**
+     * The request parsed body
+     *
+     * @var mixed
+     */
+    protected $parsedBody;
 
-	/**
-	 * The request attributes
-	 *
-	 * @var array
-	 */
-	protected $attributes = [];
+    /**
+     * The request attributes
+     *
+     * @var array
+     */
+    protected $attributes = [];
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getServerParams() : array
-	{
-		return $this->serverParams;
-	}
+    /**
+     * {@inheritDoc}
+     */
+    public function getServerParams() : array
+    {
+        return $this->serverParams;
+    }
 
-	/**
-	 * Gets a new instance of the message with the given server parameters
-	 *
-	 * MUST NOT be used outside of this package.
-	 *
-	 * @param array $serverParams
-	 *
-	 * @return ServerRequestInterface
-	 */
-	public function withServerParams(array $serverParams) : ServerRequestInterface
-	{
-		$clone = clone $this;
+    /**
+     * Gets a new instance of the message with the given server parameters
+     *
+     * MUST NOT be used outside of this package.
+     *
+     * @param array $serverParams
+     *
+     * @return ServerRequestInterface
+     */
+    public function withServerParams(array $serverParams) : ServerRequestInterface
+    {
+        $clone = clone $this;
+        $clone->serverParams = $serverParams;
 
-		$clone->serverParams = $serverParams;
+        return $clone;
+    }
 
-		return $clone;
-	}
+    /**
+     * {@inheritDoc}
+     */
+    public function getCookieParams() : array
+    {
+        return $this->cookieParams;
+    }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getCookieParams() : array
-	{
-		return $this->cookieParams;
-	}
+    /**
+     * {@inheritDoc}
+     */
+    public function withCookieParams(array $cookieParams) : ServerRequestInterface
+    {
+        $clone = clone $this;
+        $clone->cookieParams = $cookieParams;
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public function withCookieParams(array $cookieParams) : ServerRequestInterface
-	{
-		$clone = clone $this;
+        return $clone;
+    }
 
-		$clone->cookieParams = $cookieParams;
+    /**
+     * {@inheritDoc}
+     */
+    public function getQueryParams() : array
+    {
+        return $this->queryParams;
+    }
 
-		return $clone;
-	}
+    /**
+     * {@inheritDoc}
+     */
+    public function withQueryParams(array $queryParams) : ServerRequestInterface
+    {
+        $clone = clone $this;
+        $clone->queryParams = $queryParams;
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getQueryParams() : array
-	{
-		return $this->queryParams;
-	}
+        return $clone;
+    }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public function withQueryParams(array $queryParams) : ServerRequestInterface
-	{
-		$clone = clone $this;
+    /**
+     * {@inheritDoc}
+     */
+    public function getUploadedFiles() : array
+    {
+        return $this->uploadedFiles;
+    }
 
-		$clone->queryParams = $queryParams;
+    /**
+     * {@inheritDoc}
+     */
+    public function withUploadedFiles(array $uploadedFiles) : ServerRequestInterface
+    {
+        // Validates the given uploaded files structure
+        \array_walk_recursive($uploadedFiles, function ($uploadedFile) {
+            if (! ($uploadedFile instanceof UploadedFileInterface)) {
+                throw new \InvalidArgumentException('Invalid uploaded files structure');
+            }
+        });
 
-		return $clone;
-	}
+        $clone = clone $this;
+        $clone->uploadedFiles = $uploadedFiles;
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getUploadedFiles() : array
-	{
-		return $this->uploadedFiles;
-	}
+        return $clone;
+    }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public function withUploadedFiles(array $uploadedFiles) : ServerRequestInterface
-	{
-		// Validates the given uploaded files structure
-		\array_walk_recursive($uploadedFiles, function($uploadedFile)
-		{
-			if (! ($uploadedFile instanceof UploadedFileInterface))
-			{
-				throw new \InvalidArgumentException('Invalid uploaded files structure');
-			}
-		});
+    /**
+     * {@inheritDoc}
+     */
+    public function getParsedBody()
+    {
+        return $this->parsedBody;
+    }
 
-		$clone = clone $this;
+    /**
+     * {@inheritDoc}
+     */
+    public function withParsedBody($parsedBody) : ServerRequestInterface
+    {
+        $clone = clone $this;
+        $clone->parsedBody = $parsedBody;
 
-		$clone->uploadedFiles = $uploadedFiles;
+        return $clone;
+    }
 
-		return $clone;
-	}
+    /**
+     * {@inheritDoc}
+     */
+    public function getAttributes() : array
+    {
+        return $this->attributes;
+    }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getParsedBody()
-	{
-		return $this->parsedBody;
-	}
+    /**
+     * {@inheritDoc}
+     */
+    public function getAttribute($name, $default = null)
+    {
+        if (\array_key_exists($name, $this->attributes)) {
+            return $this->attributes[$name];
+        }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public function withParsedBody($parsedBody) : ServerRequestInterface
-	{
-		$clone = clone $this;
+        return $default;
+    }
 
-		$clone->parsedBody = $parsedBody;
+    /**
+     * {@inheritDoc}
+     */
+    public function withAttribute($name, $value) : ServerRequestInterface
+    {
+        $clone = clone $this;
+        $clone->attributes[$name] = $value;
 
-		return $clone;
-	}
+        return $clone;
+    }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getAttributes() : array
-	{
-		return $this->attributes;
-	}
+    /**
+     * {@inheritDoc}
+     */
+    public function withoutAttribute($name) : ServerRequestInterface
+    {
+        $clone = clone $this;
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getAttribute($name, $default = null)
-	{
-		if (\array_key_exists($name, $this->attributes))
-		{
-			return $this->attributes[$name];
-		}
+        unset($clone->attributes[$name]);
 
-		return $default;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function withAttribute($name, $value) : ServerRequestInterface
-	{
-		$clone = clone $this;
-
-		$clone->attributes[$name] = $value;
-
-		return $clone;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function withoutAttribute($name) : ServerRequestInterface
-	{
-		$clone = clone $this;
-
-		unset($clone->attributes[$name]);
-
-		return $clone;
-	}
+        return $clone;
+    }
 }

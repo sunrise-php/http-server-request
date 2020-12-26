@@ -26,147 +26,144 @@ use Sunrise\Stream\StreamFactory;
 class UploadedFile implements UploadedFileInterface
 {
 
-	/**
-	 * The file stream
-	 *
-	 * @var null|StreamInterface
-	 */
-	protected $stream;
+    /**
+     * The file stream
+     *
+     * @var null|StreamInterface
+     */
+    protected $stream;
 
-	/**
-	 * The file size
-	 *
-	 * @var null|int
-	 */
-	protected $size;
+    /**
+     * The file size
+     *
+     * @var null|int
+     */
+    protected $size;
 
-	/**
-	 * The file error
-	 *
-	 * @var int
-	 */
-	protected $error;
+    /**
+     * The file error
+     *
+     * @var int
+     */
+    protected $error;
 
-	/**
-	 * The file name
-	 *
-	 * @var null|string
-	 */
-	protected $clientFilename;
+    /**
+     * The file name
+     *
+     * @var null|string
+     */
+    protected $clientFilename;
 
-	/**
-	 * The file type
-	 *
-	 * @var null|string
-	 */
-	protected $clientMediaType;
+    /**
+     * The file type
+     *
+     * @var null|string
+     */
+    protected $clientMediaType;
 
-	/**
-	 * Constructor of the class
-	 *
-	 * @param StreamInterface $stream
-	 * @param null|int $size
-	 * @param int $error
-	 * @param null|string $clientFilename
-	 * @param null|string $clientMediaType
-	 */
-	public function __construct(StreamInterface $stream, int $size = null, int $error = \UPLOAD_ERR_OK, string $clientFilename = null, string $clientMediaType = null)
-	{
-		$this->stream = $stream;
+    /**
+     * Constructor of the class
+     *
+     * @param StreamInterface $stream
+     * @param null|int $size
+     * @param int $error
+     * @param null|string $clientFilename
+     * @param null|string $clientMediaType
+     */
+    public function __construct(
+        StreamInterface $stream,
+        int $size = null,
+        int $error = \UPLOAD_ERR_OK,
+        string $clientFilename = null,
+        string $clientMediaType = null
+    ) {
+        $this->stream = $stream;
+        $this->size = $size ?? $stream->getSize();
+        $this->error = $error;
+        $this->clientFilename = $clientFilename;
+        $this->clientMediaType = $clientMediaType;
+    }
 
-		$this->size = $size ?? $stream->getSize();
+    /**
+     * {@inheritDoc}
+     */
+    public function getStream() : StreamInterface
+    {
+        if (! ($this->stream instanceof StreamInterface)) {
+            throw new \RuntimeException('The uploaded file already moved');
+        }
 
-		$this->error = $error;
+        return $this->stream;
+    }
 
-		$this->clientFilename = $clientFilename;
+    /**
+     * {@inheritDoc}
+     */
+    public function moveTo($targetPath) : void
+    {
+        if (! ($this->stream instanceof StreamInterface)) {
+            throw new \RuntimeException('The uploaded file already moved');
+        }
 
-		$this->clientMediaType = $clientMediaType;
-	}
+        if (! (\UPLOAD_ERR_OK === $this->error)) {
+            throw new \RuntimeException('The uploaded file cannot be moved due to an error');
+        }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getStream() : StreamInterface
-	{
-		if (! ($this->stream instanceof StreamInterface))
-		{
-			throw new \RuntimeException('The uploaded file already moved');
-		}
+        $folder = \dirname($targetPath);
+        if (! \is_dir($folder)) {
+            throw new \RuntimeException(
+                \sprintf('The uploaded file cannot be moved. The directory "%s" does not exist', $folder)
+            );
+        }
 
-		return $this->stream;
-	}
+        if (! \is_writeable($folder)) {
+            throw new \RuntimeException(
+                \sprintf('The uploaded file cannot be moved. The directory "%s" is not writeable', $folder)
+            );
+        }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public function moveTo($targetPath) : void
-	{
-		if (! ($this->stream instanceof StreamInterface))
-		{
-			throw new \RuntimeException('The uploaded file already moved');
-		}
+        $target = (new StreamFactory)->createStreamFromFile($targetPath, 'wb');
 
-		if (! (\UPLOAD_ERR_OK === $this->error))
-		{
-			throw new \RuntimeException('The uploaded file cannot be moved due to an error');
-		}
+        $this->stream->rewind();
+        while (! $this->stream->eof()) {
+            $target->write($this->stream->read(4096));
+        }
 
-		$folder = \dirname($targetPath);
+        $this->stream->close();
+        $this->stream = null;
 
-		if (! \is_dir($folder))
-		{
-			throw new \RuntimeException(\sprintf('The uploaded file cannot be moved. The directory "%s" does not exist', $folder));
-		}
+        $target->close();
+    }
 
-		if (! \is_writeable($folder))
-		{
-			throw new \RuntimeException(\sprintf('The uploaded file cannot be moved. The directory "%s" is not writeable', $folder));
-		}
+    /**
+     * {@inheritDoc}
+     */
+    public function getSize() : ?int
+    {
+        return $this->size;
+    }
 
-		$target = (new StreamFactory)->createStreamFromFile($targetPath, 'wb');
+    /**
+     * {@inheritDoc}
+     */
+    public function getError() : int
+    {
+        return $this->error;
+    }
 
-		$this->stream->rewind();
+    /**
+     * {@inheritDoc}
+     */
+    public function getClientFilename() : ?string
+    {
+        return $this->clientFilename;
+    }
 
-		while (! $this->stream->eof())
-		{
-			$target->write($this->stream->read(4096));
-		}
-
-		$this->stream->close();
-		$this->stream = null;
-
-		$target->close();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getSize() : ?int
-	{
-		return $this->size;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getError() : int
-	{
-		return $this->error;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getClientFilename() : ?string
-	{
-		return $this->clientFilename;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getClientMediaType() : ?string
-	{
-		return $this->clientMediaType;
-	}
+    /**
+     * {@inheritDoc}
+     */
+    public function getClientMediaType() : ?string
+    {
+        return $this->clientMediaType;
+    }
 }

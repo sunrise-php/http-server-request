@@ -28,11 +28,11 @@ use Sunrise\Stream\StreamFactory;
  */
 function request_body() : StreamInterface
 {
-	$resource = \fopen('php://temp', 'r+b');
+    $resource = \fopen('php://temp', 'r+b');
 
-	\stream_copy_to_stream(\fopen('php://input', 'rb'), $resource);
+    \stream_copy_to_stream(\fopen('php://input', 'rb'), $resource);
 
-	\rewind($resource);
+    \rewind($resource);
 
-	return (new StreamFactory)->createStreamFromResource($resource);
+    return (new StreamFactory)->createStreamFromResource($resource);
 }
