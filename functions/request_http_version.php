@@ -24,15 +24,13 @@ namespace Sunrise\Http\ServerRequest;
  */
 function request_http_version(array $server) : string
 {
-	$regex = '/^HTTP\/(\d(?:\.\d)?)$/';
+    $regex = '/^HTTP\/(\d(?:\.\d)?)$/';
 
-	if (isset($server['SERVER_PROTOCOL']))
-	{
-		if (\preg_match($regex, $server['SERVER_PROTOCOL'], $matches))
-		{
-			return $matches[1];
-		}
-	}
+    if (isset($server['SERVER_PROTOCOL'])) {
+        if (\preg_match($regex, $server['SERVER_PROTOCOL'], $matches)) {
+            return $matches[1];
+        }
+    }
 
-	return '1.1';
+    return '1.1';
 }

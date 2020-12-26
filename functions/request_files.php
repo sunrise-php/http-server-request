@@ -34,35 +34,29 @@ use const UPLOAD_ERR_NO_FILE;
  */
 function request_files(array $files) : array
 {
-	$walker = function($path, $size, $error, $name, $type) use(& $walker)
-	{
-		if (! \is_array($path))
-		{
-			$stream = (new StreamFactory)->createStreamFromFile($path, 'rb');
+    $walker = function ($path, $size, $error, $name, $type) use (&$walker) {
+        if (! \is_array($path)) {
+            $stream = (new StreamFactory)->createStreamFromFile($path, 'rb');
 
-			return (new UploadedFileFactory)->createUploadedFile($stream, $size, $error, $name, $type);
-		}
+            return (new UploadedFileFactory)->createUploadedFile($stream, $size, $error, $name, $type);
+        }
 
-		$result = [];
+        $result = [];
+        foreach ($path as $key => $value) {
+            $result[$key] = $walker($path[$key], $size[$key], $error[$key], $name[$key], $type[$key]);
+        }
 
-		foreach ($path as $key => $value)
-		{
-			$result[$key] = $walker($path[$key], $size[$key], $error[$key], $name[$key], $type[$key]);
-		}
+        return $result;
+    };
 
-		return $result;
-	};
+    $result = [];
+    foreach ($files as $key => $file) {
+        if (UPLOAD_ERR_NO_FILE === $file['error']) {
+            continue;
+        }
 
-	$result = [];
+        $result[$key] = $walker($file['tmp_name'], $file['size'], $file['error'], $file['name'], $file['type']);
+    }
 
-	foreach ($files as $key => $file)
-	{
-		if (UPLOAD_ERR_NO_FILE === $file['error']) {
-			continue;
-		}
-
-		$result[$key] = $walker($file['tmp_name'], $file['size'], $file['error'], $file['name'], $file['type']);
-	}
-
-	return $result;
+    return $result;
 }

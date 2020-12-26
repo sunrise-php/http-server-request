@@ -1,7 +1,7 @@
-## HTTP Server Request wrapper for PHP 7.1+ based on PSR-7 & PSR-17
+## HTTP server request wrapper for PHP 7.1+ (incl. PHP 8) based on PSR-7 & PSR-17
 
 [![Gitter](https://badges.gitter.im/sunrise-php/support.png)](https://gitter.im/sunrise-php/support)
-[![Build Status](https://api.travis-ci.com/sunrise-php/http-server-request.svg?branch=master)](https://travis-ci.com/sunrise-php/http-server-request)
+[![Build Status](https://scrutinizer-ci.com/g/sunrise-php/http-server-request/badges/build.png?b=master)](https://scrutinizer-ci.com/g/sunrise-php/http-server-request/build-status/master)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/sunrise-php/http-server-request/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/sunrise-php/http-server-request/?branch=master)
 [![Code Coverage](https://scrutinizer-ci.com/g/sunrise-php/http-server-request/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/sunrise-php/http-server-request/?branch=master)
 [![Latest Stable Version](https://poser.pugx.org/sunrise/http-server-request/v/stable)](https://packagist.org/packages/sunrise/http-server-request)
@@ -29,10 +29,6 @@ $request = ServerRequestFactory::fromGlobals();
 ```bash
 php vendor/bin/phpunit
 ```
-
-## Api documentation
-
-https://phpdoc.fenric.ru/
 
 ## Useful links
 

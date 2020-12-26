@@ -24,5 +24,5 @@ namespace Sunrise\Http\ServerRequest;
  */
 function request_method(array $server) : string
 {
-	return $server['REQUEST_METHOD'] ?? 'GET';
+    return $server['REQUEST_METHOD'] ?? 'GET';
 }

@@ -24,23 +24,20 @@ namespace Sunrise\Http\ServerRequest;
  */
 function request_headers(array $server) : array
 {
-	$result = [];
+    $result = [];
+    foreach ($server as $key => $value) {
+        if (! (0 === \strncmp('HTTP_', $key, 5))) {
+            continue;
+        }
 
-	foreach ($server as $key => $value)
-	{
-		if (! (0 === \strncmp('HTTP_', $key, 5)))
-		{
-			continue;
-		}
+        $name = \substr($key, 5);
+        $name = \strtolower($name);
+        $name = \strtr($name, '_', ' ');
+        $name = \ucwords($name);
+        $name = \strtr($name, ' ', '-');
 
-		$name = \substr($key, 5);
-		$name = \strtolower($name);
-		$name = \strtr($name, '_', ' ');
-		$name = \ucwords($name);
-		$name = \strtr($name, ' ', '-');
+        $result[$name] = $value;
+    }
 
-		$result[$name] = $value;
-	}
-
-	return $result;
+    return $result;
 }
