@@ -1,4 +1,4 @@
-# HTTP server request wrapper for PHP 7.1+ based on PSR-7 and PSR-17
+## HTTP server request wrapper for PHP 7.1+ based on PSR-7 and PSR-17
 
 [![Build Status](https://circleci.com/gh/sunrise-php/http-server-request.svg?style=shield)](https://circleci.com/gh/sunrise-php/http-server-request)
 [![Code Coverage](https://scrutinizer-ci.com/g/sunrise-php/http-server-request/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/sunrise-php/http-server-request/?branch=master)
@@ -12,7 +12,7 @@
 ## Installation
 
 ```bash
-composer require sunrise/http-server-request
+composer require 'sunrise/http-server-request:^2.0'
 ```
 
 ## How to use?
