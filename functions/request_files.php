@@ -14,7 +14,6 @@ namespace Sunrise\Http\ServerRequest;
 /**
  * Import classes
  */
-use Psr\Http\Message\UploadedFileInterface;
 use Sunrise\Stream\StreamFactory;
 
 /**
@@ -32,7 +31,7 @@ use const UPLOAD_ERR_NO_FILE;
  *
  * @param array $files
  *
- * @return array<UploadedFileInterface>
+ * @return array
  *
  * @link http://php.net/manual/en/reserved.variables.files.php
  */
@@ -44,7 +43,13 @@ function request_files(array $files) : array
                 ->createStreamFromFile($path, 'rb');
 
             return (new UploadedFileFactory)
-                ->createUploadedFile($stream, $size, $error, $name, $type);
+                ->createUploadedFile(
+                    $stream,
+                    $size,
+                    $error,
+                    $name,
+                    $type
+                );
         }
 
         $result = [];
