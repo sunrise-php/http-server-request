@@ -1,7 +1,7 @@
 {
     "name": "sunrise/http-server-request",
     "homepage": "https://github.com/sunrise-php/http-server-request",
-    "description": "Sunrise HTTP server request wrapper for PHP 7.1+ based on PSR-7 & PSR-17",
+    "description": "Sunrise // HTTP server request wrapper for PHP 7.1+ based on PSR-7 and PSR-17",
     "license": "MIT",
     "keywords": [
         "fenric",
@@ -29,7 +29,7 @@
         "php": "^7.1|^8.0",
         "psr/http-factory": "^1.0",
         "psr/http-message": "^1.0",
-        "sunrise/http-message": "^1.4",
+        "sunrise/http-message": "^2.0",
         "sunrise/stream": "^1.2",
         "sunrise/uri": "^1.2"
     },
@@ -55,8 +55,12 @@
     },
     "scripts": {
         "test": [
-            "phpunit --colors=always --coverage-text",
-            "phpcs"
+            "phpcs",
+            "XDEBUG_MODE=coverage phpunit --coverage-text --colors=always"
+        ],
+        "build": [
+            "phpdoc -d src/ -t phpdoc/",
+            "XDEBUG_MODE=coverage phpunit --coverage-html coverage/"
         ]
     }
 }
