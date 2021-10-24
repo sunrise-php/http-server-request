@@ -17,6 +17,21 @@ namespace Sunrise\Http\ServerRequest;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UploadedFileInterface;
 use Sunrise\Stream\StreamFactory;
+use InvalidArgumentException;
+use RuntimeException;
+
+/**
+ * Import functions
+ */
+use function dirname;
+use function is_dir;
+use function is_writeable;
+use function sprintf;
+
+/**
+ * Import constants
+ */
+use const UPLOAD_ERR_OK;
 
 /**
  * UploadedFile
@@ -29,14 +44,14 @@ class UploadedFile implements UploadedFileInterface
     /**
      * The file stream
      *
-     * @var null|StreamInterface
+     * @var StreamInterface|null
      */
     protected $stream;
 
     /**
      * The file size
      *
-     * @var null|int
+     * @var int|null
      */
     protected $size;
 
@@ -50,14 +65,14 @@ class UploadedFile implements UploadedFileInterface
     /**
      * The file name
      *
-     * @var null|string
+     * @var string|null
      */
     protected $clientFilename;
 
     /**
      * The file type
      *
-     * @var null|string
+     * @var string|null
      */
     protected $clientMediaType;
 
@@ -65,17 +80,17 @@ class UploadedFile implements UploadedFileInterface
      * Constructor of the class
      *
      * @param StreamInterface $stream
-     * @param null|int $size
+     * @param int|null $size
      * @param int $error
-     * @param null|string $clientFilename
-     * @param null|string $clientMediaType
+     * @param string|null $clientFilename
+     * @param string|null $clientMediaType
      */
     public function __construct(
         StreamInterface $stream,
-        int $size = null,
-        int $error = \UPLOAD_ERR_OK,
-        string $clientFilename = null,
-        string $clientMediaType = null
+        ?int $size = null,
+        int $error = UPLOAD_ERR_OK,
+        ?string $clientFilename = null,
+        ?string $clientMediaType = null
     ) {
         $this->stream = $stream;
         $this->size = $size ?? $stream->getSize();
@@ -85,47 +100,54 @@ class UploadedFile implements UploadedFileInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
+     *
+     * @throws RuntimeException
      */
     public function getStream() : StreamInterface
     {
         if (! ($this->stream instanceof StreamInterface)) {
-            throw new \RuntimeException('The uploaded file already moved');
+            throw new RuntimeException('The uploaded file already moved');
         }
 
         return $this->stream;
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
+     *
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
      */
     public function moveTo($targetPath) : void
     {
         if (! ($this->stream instanceof StreamInterface)) {
-            throw new \RuntimeException('The uploaded file already moved');
+            throw new RuntimeException('The uploaded file already moved');
         }
 
-        if (! (\UPLOAD_ERR_OK === $this->error)) {
-            throw new \RuntimeException('The uploaded file cannot be moved due to an error');
+        if (UPLOAD_ERR_OK <> $this->error) {
+            throw new RuntimeException('The uploaded file cannot be moved due to an error');
         }
 
-        $folder = \dirname($targetPath);
-        if (! \is_dir($folder)) {
-            throw new \RuntimeException(
-                \sprintf('The uploaded file cannot be moved. The directory "%s" does not exist', $folder)
-            );
+        $folder = dirname($targetPath);
+        if (!is_dir($folder)) {
+            throw new InvalidArgumentException(sprintf(
+                'The uploaded file cannot be moved. The directory "%s" does not exist',
+                $folder
+            ));
         }
 
-        if (! \is_writeable($folder)) {
-            throw new \RuntimeException(
-                \sprintf('The uploaded file cannot be moved. The directory "%s" is not writeable', $folder)
-            );
+        if (!is_writeable($folder)) {
+            throw new InvalidArgumentException(sprintf(
+                'The uploaded file cannot be moved. The directory "%s" is not writeable',
+                $folder
+            ));
         }
 
         $target = (new StreamFactory)->createStreamFromFile($targetPath, 'wb');
 
         $this->stream->rewind();
-        while (! $this->stream->eof()) {
+        while (!$this->stream->eof()) {
             $target->write($this->stream->read(4096));
         }
 
@@ -136,7 +158,7 @@ class UploadedFile implements UploadedFileInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function getSize() : ?int
     {
@@ -144,7 +166,7 @@ class UploadedFile implements UploadedFileInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function getError() : int
     {
@@ -152,7 +174,7 @@ class UploadedFile implements UploadedFileInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function getClientFilename() : ?string
     {
@@ -160,7 +182,7 @@ class UploadedFile implements UploadedFileInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function getClientMediaType() : ?string
     {

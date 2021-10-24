@@ -15,8 +15,17 @@ namespace Sunrise\Http\ServerRequest;
  * Import classes
  */
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UploadedFileInterface;
+use Psr\Http\Message\UriInterface;
 use Sunrise\Http\Message\Request;
+use InvalidArgumentException;
+
+/**
+ * Import functions
+ */
+use function array_key_exists;
+use function array_walk_recursive;
 
 /**
  * ServerRequest
@@ -34,18 +43,18 @@ class ServerRequest extends Request implements ServerRequestInterface
     protected $serverParams = [];
 
     /**
-     * The request cookie parameters
-     *
-     * @var array
-     */
-    protected $cookieParams = [];
-
-    /**
      * The request query parameters
      *
      * @var array
      */
     protected $queryParams = [];
+
+    /**
+     * The request cookie parameters
+     *
+     * @var array
+     */
+    protected $cookieParams = [];
 
     /**
      * The request uploaded files
@@ -59,7 +68,7 @@ class ServerRequest extends Request implements ServerRequestInterface
      *
      * @var mixed
      */
-    protected $parsedBody;
+    protected $parsedBody = null;
 
     /**
      * The request attributes
@@ -69,7 +78,73 @@ class ServerRequest extends Request implements ServerRequestInterface
     protected $attributes = [];
 
     /**
-     * {@inheritDoc}
+     * Constructor of the class
+     *
+     * @param string|null $method
+     * @param string|UriInterface|null $uri
+     * @param array<string, string|array<string>>|null $headers
+     * @param StreamInterface|null $body
+     * @param string|null $requestTarget
+     * @param string|null $protocolVersion
+     * @param array|null $serverParams
+     * @param array|null $queryParams
+     * @param array|null $cookieParams
+     * @param array|null $uploadedFiles
+     * @param mixed|null $parsedBody
+     * @param array|null $attributes
+     *
+     * @throws InvalidArgumentException
+     */
+    public function __construct(
+        ?string $method = null,
+        $uri = null,
+        ?array $headers = null,
+        ?StreamInterface $body = null,
+        ?string $requestTarget = null,
+        ?string $protocolVersion = null,
+        ?array $serverParams = null,
+        ?array $queryParams = null,
+        ?array $cookieParams = null,
+        ?array $uploadedFiles = null,
+        $parsedBody = null,
+        ?array $attributes = null
+    ) {
+        parent::__construct(
+            $method,
+            $uri,
+            $headers,
+            $body,
+            $requestTarget,
+            $protocolVersion
+        );
+
+        if (isset($serverParams)) {
+            $this->serverParams = $serverParams;
+        }
+
+        if (isset($queryParams)) {
+            $this->queryParams = $queryParams;
+        }
+
+        if (isset($cookieParams)) {
+            $this->cookieParams = $cookieParams;
+        }
+
+        if (isset($uploadedFiles)) {
+            $this->setUploadedFiles($uploadedFiles);
+        }
+
+        if (isset($parsedBody)) {
+            $this->parsedBody = $parsedBody;
+        }
+
+        if (isset($attributes)) {
+            $this->attributes = $attributes;
+        }
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function getServerParams() : array
     {
@@ -77,43 +152,7 @@ class ServerRequest extends Request implements ServerRequestInterface
     }
 
     /**
-     * Gets a new instance of the message with the given server parameters
-     *
-     * MUST NOT be used outside of this package.
-     *
-     * @param array $serverParams
-     *
-     * @return ServerRequestInterface
-     */
-    public function withServerParams(array $serverParams) : ServerRequestInterface
-    {
-        $clone = clone $this;
-        $clone->serverParams = $serverParams;
-
-        return $clone;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function getCookieParams() : array
-    {
-        return $this->cookieParams;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function withCookieParams(array $cookieParams) : ServerRequestInterface
-    {
-        $clone = clone $this;
-        $clone->cookieParams = $cookieParams;
-
-        return $clone;
-    }
-
-    /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function getQueryParams() : array
     {
@@ -121,7 +160,7 @@ class ServerRequest extends Request implements ServerRequestInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function withQueryParams(array $queryParams) : ServerRequestInterface
     {
@@ -132,7 +171,26 @@ class ServerRequest extends Request implements ServerRequestInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
+     */
+    public function getCookieParams() : array
+    {
+        return $this->cookieParams;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function withCookieParams(array $cookieParams) : ServerRequestInterface
+    {
+        $clone = clone $this;
+        $clone->cookieParams = $cookieParams;
+
+        return $clone;
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function getUploadedFiles() : array
     {
@@ -140,25 +198,20 @@ class ServerRequest extends Request implements ServerRequestInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
+     *
+     * @throws InvalidArgumentException
      */
     public function withUploadedFiles(array $uploadedFiles) : ServerRequestInterface
     {
-        // Validates the given uploaded files structure
-        \array_walk_recursive($uploadedFiles, function ($uploadedFile) {
-            if (! ($uploadedFile instanceof UploadedFileInterface)) {
-                throw new \InvalidArgumentException('Invalid uploaded files structure');
-            }
-        });
-
         $clone = clone $this;
-        $clone->uploadedFiles = $uploadedFiles;
+        $clone->setUploadedFiles($uploadedFiles);
 
         return $clone;
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function getParsedBody()
     {
@@ -166,7 +219,7 @@ class ServerRequest extends Request implements ServerRequestInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function withParsedBody($parsedBody) : ServerRequestInterface
     {
@@ -177,7 +230,7 @@ class ServerRequest extends Request implements ServerRequestInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function getAttributes() : array
     {
@@ -185,11 +238,11 @@ class ServerRequest extends Request implements ServerRequestInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function getAttribute($name, $default = null)
     {
-        if (\array_key_exists($name, $this->attributes)) {
+        if (array_key_exists($name, $this->attributes)) {
             return $this->attributes[$name];
         }
 
@@ -197,7 +250,7 @@ class ServerRequest extends Request implements ServerRequestInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function withAttribute($name, $value) : ServerRequestInterface
     {
@@ -208,7 +261,7 @@ class ServerRequest extends Request implements ServerRequestInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function withoutAttribute($name) : ServerRequestInterface
     {
@@ -217,5 +270,25 @@ class ServerRequest extends Request implements ServerRequestInterface
         unset($clone->attributes[$name]);
 
         return $clone;
+    }
+
+    /**
+     * Sets the given uploaded files to the request
+     *
+     * @param array $files
+     *
+     * @return void
+     *
+     * @throws InvalidArgumentException
+     */
+    protected function setUploadedFiles(array $files) : void
+    {
+        array_walk_recursive($files, function ($file) {
+            if (! ($file instanceof UploadedFileInterface)) {
+                throw new InvalidArgumentException('Invalid uploaded files structure');
+            }
+        });
+
+        $this->uploadedFiles = $files;
     }
 }
