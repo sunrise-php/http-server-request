@@ -14,9 +14,7 @@ namespace Sunrise\Http\ServerRequest;
 /**
  * Gets the request method from the given server environment
  *
- * MUST NOT be used outside of this package.
- *
- * @param array $server
+ * @param array<string, mixed> $server
  *
  * @return string
  *

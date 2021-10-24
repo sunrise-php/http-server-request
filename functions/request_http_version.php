@@ -12,11 +12,14 @@
 namespace Sunrise\Http\ServerRequest;
 
 /**
+ * Import functions
+ */
+use function preg_match;
+
+/**
  * Gets the request HTTP version from the given server environment
  *
- * MUST NOT be used outside of this package.
- *
- * @param array $server
+ * @param array<string, mixed> $server
  *
  * @return string
  *
@@ -24,10 +27,10 @@ namespace Sunrise\Http\ServerRequest;
  */
 function request_http_version(array $server) : string
 {
-    $regex = '/^HTTP\/(\d(?:\.\d)?)$/';
+    static $regex = '/^HTTP\/(\d(?:\.\d)?)$/';
 
     if (isset($server['SERVER_PROTOCOL'])) {
-        if (\preg_match($regex, $server['SERVER_PROTOCOL'], $matches)) {
+        if (preg_match($regex, $server['SERVER_PROTOCOL'], $matches)) {
             return $matches[1];
         }
     }

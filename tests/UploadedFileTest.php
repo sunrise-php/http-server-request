@@ -241,7 +241,7 @@ class UploadedFileTest extends TestCase
         $targetPath = $this->targetPath . '/d';
         $uploadedFile = new UploadedFile($this->stream);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(\InvalidArgumentException::class);
 
         $this->expectExceptionMessage(
             \sprintf('The uploaded file cannot be moved. The directory "%s" does not exist', $this->targetPath)

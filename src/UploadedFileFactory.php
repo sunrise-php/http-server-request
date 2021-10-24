@@ -19,6 +19,11 @@ use Psr\Http\Message\UploadedFileFactoryInterface;
 use Psr\Http\Message\UploadedFileInterface;
 
 /**
+ * Import constants
+ */
+use const UPLOAD_ERR_OK;
+
+/**
  * UploadedFileFactory
  *
  * @link https://www.php-fig.org/psr/psr-17/
@@ -27,15 +32,21 @@ class UploadedFileFactory implements UploadedFileFactoryInterface
 {
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function createUploadedFile(
         StreamInterface $stream,
-        int $size = null,
-        int $error = \UPLOAD_ERR_OK,
-        string $clientFilename = null,
-        string $clientMediaType = null
+        ?int $size = null,
+        int $error = UPLOAD_ERR_OK,
+        ?string $clientFilename = null,
+        ?string $clientMediaType = null
     ) : UploadedFileInterface {
-        return new UploadedFile($stream, $size, $error, $clientFilename, $clientMediaType);
+        return new UploadedFile(
+            $stream,
+            $size,
+            $error,
+            $clientFilename,
+            $clientMediaType
+        );
     }
 }

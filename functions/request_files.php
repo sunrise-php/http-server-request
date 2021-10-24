@@ -17,14 +17,17 @@ namespace Sunrise\Http\ServerRequest;
 use Sunrise\Stream\StreamFactory;
 
 /**
+ * Import functions
+ */
+use function is_array;
+
+/**
  * Import constants
  */
 use const UPLOAD_ERR_NO_FILE;
 
 /**
  * Normalizes the given uploaded files
- *
- * MUST NOT be used outside of this package.
  *
  * @param array $files
  *
@@ -35,15 +38,29 @@ use const UPLOAD_ERR_NO_FILE;
 function request_files(array $files) : array
 {
     $walker = function ($path, $size, $error, $name, $type) use (&$walker) {
-        if (! \is_array($path)) {
-            $stream = (new StreamFactory)->createStreamFromFile($path, 'rb');
+        if (!is_array($path)) {
+            $stream = (new StreamFactory)
+                ->createStreamFromFile($path, 'rb');
 
-            return (new UploadedFileFactory)->createUploadedFile($stream, $size, $error, $name, $type);
+            return (new UploadedFileFactory)
+                ->createUploadedFile(
+                    $stream,
+                    $size,
+                    $error,
+                    $name,
+                    $type
+                );
         }
 
         $result = [];
         foreach ($path as $key => $value) {
-            $result[$key] = $walker($path[$key], $size[$key], $error[$key], $name[$key], $type[$key]);
+            $result[$key] = $walker(
+                $path[$key],
+                $size[$key],
+                $error[$key],
+                $name[$key],
+                $type[$key]
+            );
         }
 
         return $result;
@@ -51,11 +68,15 @@ function request_files(array $files) : array
 
     $result = [];
     foreach ($files as $key => $file) {
-        if (UPLOAD_ERR_NO_FILE === $file['error']) {
-            continue;
+        if (UPLOAD_ERR_NO_FILE <> $file['error']) {
+            $result[$key] = $walker(
+                $file['tmp_name'],
+                $file['size'],
+                $file['error'],
+                $file['name'],
+                $file['type']
+            );
         }
-
-        $result[$key] = $walker($file['tmp_name'], $file['size'], $file['error'], $file['name'], $file['type']);
     }
 
     return $result;

@@ -12,13 +12,20 @@
 namespace Sunrise\Http\ServerRequest;
 
 /**
+ * Import functions
+ */
+use function strncmp;
+use function strtolower;
+use function strtr;
+use function substr;
+use function ucwords;
+
+/**
  * Gets the request headers from the given server environment
  *
- * MUST NOT be used outside of this package.
+ * @param array<string, mixed> $server
  *
- * @param array $server
- *
- * @return array
+ * @return array<string, string>
  *
  * @link http://php.net/manual/en/reserved.variables.server.php
  */
@@ -26,15 +33,15 @@ function request_headers(array $server) : array
 {
     $result = [];
     foreach ($server as $key => $value) {
-        if (! (0 === \strncmp('HTTP_', $key, 5))) {
+        if (0 <> strncmp('HTTP_', $key, 5)) {
             continue;
         }
 
-        $name = \substr($key, 5);
-        $name = \strtolower($name);
-        $name = \strtr($name, '_', ' ');
-        $name = \ucwords($name);
-        $name = \strtr($name, ' ', '-');
+        $name = substr($key, 5);
+        $name = strtolower($name);
+        $name = strtr($name, '_', ' ');
+        $name = ucwords($name);
+        $name = strtr($name, ' ', '-');
 
         $result[$name] = $value;
     }

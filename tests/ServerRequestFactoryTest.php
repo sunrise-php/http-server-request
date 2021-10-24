@@ -108,21 +108,21 @@ class ServerRequestFactoryTest extends TestCase
     /**
      * @return void
      */
-    public function testCreateServerRequestFromGlobalsWithBody() : void
+    public function testCreateServerRequestFromGlobalsWithCookies() : void
     {
-        $body = ['foo' => 'bar'];
-        $request = ServerRequestFactory::fromGlobals([], [], $body, [], []);
-        $this->assertEquals($body, $request->getParsedBody());
+        $cookies = ['foo' => 'bar'];
+        $request = ServerRequestFactory::fromGlobals([], [], $cookies, [], []);
+        $this->assertEquals($cookies, $request->getCookieParams());
     }
 
     /**
      * @return void
      */
-    public function testCreateServerRequestFromGlobalsWithCookies() : void
+    public function testCreateServerRequestFromGlobalsWithBody() : void
     {
-        $cookies = ['foo' => 'bar'];
-        $request = ServerRequestFactory::fromGlobals([], [], [], $cookies, []);
-        $this->assertEquals($cookies, $request->getCookieParams());
+        $body = ['foo' => 'bar'];
+        $request = ServerRequestFactory::fromGlobals([], [], [], [], $body);
+        $this->assertEquals($body, $request->getParsedBody());
     }
 
     /**
@@ -142,7 +142,7 @@ class ServerRequestFactoryTest extends TestCase
         $files['bar']['name'][0] = 'bar.txt';
         $files['bar']['type'][0] = 'text/plain';
 
-        $request = ServerRequestFactory::fromGlobals([], [], [], [], $files);
+        $request = ServerRequestFactory::fromGlobals([], [], [], $files, []);
         $uploadedFiles = $request->getUploadedFiles();
 
         $this->assertEquals($files['foo']['tmp_name'], $uploadedFiles['foo']->getStream()->getMetadata('uri'));
@@ -274,12 +274,16 @@ class ServerRequestFactoryTest extends TestCase
     {
         return [
             [
-                ['SERVER_PROTOCOL' => 'HTTP/2.0'],
-                '2.0',
+                ['SERVER_PROTOCOL' => 'HTTP/1.0'],
+                '1.0',
             ],
             [
-                ['SERVER_PROTOCOL' => 'HTTP/3'],
-                '3',
+                ['SERVER_PROTOCOL' => 'HTTP/1.1'],
+                '1.1',
+            ],
+            [
+                ['SERVER_PROTOCOL' => 'HTTP/2'],
+                '2',
             ],
         ];
     }

@@ -7,6 +7,7 @@ namespace Sunrise\Http\ServerRequest\Tests;
  */
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
+use Sunrise\Http\Message\Request;
 use Sunrise\Http\ServerRequest\ServerRequest;
 use Sunrise\Http\ServerRequest\UploadedFile;
 use Sunrise\Stream\StreamFactory;
@@ -20,43 +21,49 @@ class ServerRequestTest extends TestCase
     /**
      * @return void
      */
-    public function testConstructor() : void
+    public function testContracts() : void
     {
         $req = new ServerRequest();
 
         $this->assertInstanceOf(ServerRequestInterface::class, $req);
+        $this->assertInstanceOf(Request::class, $req);
     }
 
     /**
      * @return void
      */
-    public function testServerParams() : void
+    public function testConstructor() : void
     {
-        $params = ['foo' => 'bar'];
+        $body = (new StreamFactory)->createStream();
+        $file = new UploadedFile($body);
 
-        $req = new ServerRequest();
-        $this->assertEquals([], $req->getServerParams());
+        $request = new ServerRequest(
+            'POST',
+            'http://localhost:8000/foo?bar',
+            ['X-Foo' => 'bar'],
+            $body,
+            '/bar?baz',
+            '2.0',
+            ['foo' => 'bar'],
+            ['bar' => 'baz'],
+            ['baz' => 'bat'],
+            ['bat' => $file],
+            ['qux' => 'quux'],
+            ['quux' => 'quuux']
+        );
 
-        $clone = $req->withServerParams($params);
-        $this->assertInstanceOf(ServerRequestInterface::class, $clone);
-        $this->assertEquals([], $req->getServerParams());
-        $this->assertEquals($params, $clone->getServerParams());
-    }
-
-    /**
-     * @return void
-     */
-    public function testCookieParams() : void
-    {
-        $params = ['foo' => 'bar'];
-
-        $req = new ServerRequest();
-        $this->assertEquals([], $req->getCookieParams());
-
-        $clone = $req->withCookieParams($params);
-        $this->assertInstanceOf(ServerRequestInterface::class, $clone);
-        $this->assertEquals([], $req->getCookieParams());
-        $this->assertEquals($params, $clone->getCookieParams());
+        $this->assertSame('POST', $request->getMethod());
+        $this->assertSame('http://localhost:8000/foo?bar', (string) $request->getUri());
+        $this->assertSame(['X-Foo' => ['bar'], 'Host' => ['localhost:8000']], $request->getHeaders());
+        $this->assertSame($body, $request->getBody());
+        $this->assertSame('/bar?baz', $request->getRequestTarget());
+        $this->assertSame('2.0', $request->getProtocolVersion());
+        $this->assertSame(['foo' => 'bar'], $request->getServerParams());
+        $this->assertSame(['bar' => 'baz'], $request->getQueryParams());
+        $this->assertSame(['baz' => 'bat'], $request->getCookieParams());
+        $this->assertSame(['bat' => $file], $request->getUploadedFiles());
+        $this->assertSame(['qux' => 'quux'], $request->getParsedBody());
+        $this->assertSame(['quux' => 'quuux'], $request->getAttributes());
     }
 
     /**
@@ -73,6 +80,22 @@ class ServerRequestTest extends TestCase
         $this->assertInstanceOf(ServerRequestInterface::class, $clone);
         $this->assertEquals([], $req->getQueryParams());
         $this->assertEquals($params, $clone->getQueryParams());
+    }
+
+    /**
+     * @return void
+     */
+    public function testCookieParams() : void
+    {
+        $params = ['foo' => 'bar'];
+
+        $req = new ServerRequest();
+        $this->assertEquals([], $req->getCookieParams());
+
+        $clone = $req->withCookieParams($params);
+        $this->assertInstanceOf(ServerRequestInterface::class, $clone);
+        $this->assertEquals([], $req->getCookieParams());
+        $this->assertEquals($params, $clone->getCookieParams());
     }
 
     /**
