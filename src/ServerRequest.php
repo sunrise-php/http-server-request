@@ -40,42 +40,42 @@ class ServerRequest extends Request implements ServerRequestInterface
      *
      * @var array
      */
-    protected $serverParams = [];
+    protected $serverParams;
 
     /**
      * The request query parameters
      *
      * @var array
      */
-    protected $queryParams = [];
+    protected $queryParams;
 
     /**
      * The request cookie parameters
      *
      * @var array
      */
-    protected $cookieParams = [];
+    protected $cookieParams;
 
     /**
      * The request uploaded files
      *
      * @var array
      */
-    protected $uploadedFiles = [];
+    protected $uploadedFiles;
 
     /**
      * The request parsed body
      *
      * @var mixed
      */
-    protected $parsedBody = null;
+    protected $parsedBody;
 
     /**
      * The request attributes
      *
      * @var array
      */
-    protected $attributes = [];
+    protected $attributes;
 
     /**
      * Constructor of the class
@@ -86,12 +86,13 @@ class ServerRequest extends Request implements ServerRequestInterface
      * @param StreamInterface|null $body
      * @param string|null $requestTarget
      * @param string|null $protocolVersion
-     * @param array|null $serverParams
-     * @param array|null $queryParams
-     * @param array|null $cookieParams
-     * @param array|null $uploadedFiles
-     * @param mixed|null $parsedBody
-     * @param array|null $attributes
+     *
+     * @param array $serverParams
+     * @param array $queryParams
+     * @param array $cookieParams
+     * @param array $uploadedFiles
+     * @param mixed $parsedBody
+     * @param array $attributes
      *
      * @throws InvalidArgumentException
      */
@@ -102,12 +103,12 @@ class ServerRequest extends Request implements ServerRequestInterface
         ?StreamInterface $body = null,
         ?string $requestTarget = null,
         ?string $protocolVersion = null,
-        ?array $serverParams = null,
-        ?array $queryParams = null,
-        ?array $cookieParams = null,
-        ?array $uploadedFiles = null,
+        array $serverParams = [],
+        array $queryParams = [],
+        array $cookieParams = [],
+        array $uploadedFiles = [],
         $parsedBody = null,
-        ?array $attributes = null
+        array $attributes = []
     ) {
         parent::__construct(
             $method,
@@ -118,29 +119,12 @@ class ServerRequest extends Request implements ServerRequestInterface
             $protocolVersion
         );
 
-        if (isset($serverParams)) {
-            $this->serverParams = $serverParams;
-        }
-
-        if (isset($queryParams)) {
-            $this->queryParams = $queryParams;
-        }
-
-        if (isset($cookieParams)) {
-            $this->cookieParams = $cookieParams;
-        }
-
-        if (isset($uploadedFiles)) {
-            $this->setUploadedFiles($uploadedFiles);
-        }
-
-        if (isset($parsedBody)) {
-            $this->parsedBody = $parsedBody;
-        }
-
-        if (isset($attributes)) {
-            $this->attributes = $attributes;
-        }
+        $this->serverParams = $serverParams;
+        $this->queryParams = $queryParams;
+        $this->cookieParams = $cookieParams;
+        $this->setUploadedFiles($uploadedFiles);
+        $this->parsedBody = $parsedBody;
+        $this->attributes = $attributes;
     }
 
     /**
@@ -283,12 +267,30 @@ class ServerRequest extends Request implements ServerRequestInterface
      */
     protected function setUploadedFiles(array $files) : void
     {
+        $this->validateUploadedFiles($files);
+
+        $this->uploadedFiles = $files;
+    }
+
+    /**
+     * Validates the given uploaded files
+     *
+     * @param array $files
+     *
+     * @return void
+     *
+     * @throws InvalidArgumentException
+     */
+    protected function validateUploadedFiles(array $files) : void
+    {
+        if ([] === $files) {
+            return;
+        }
+
         array_walk_recursive($files, function ($file) {
             if (! ($file instanceof UploadedFileInterface)) {
                 throw new InvalidArgumentException('Invalid uploaded files structure');
             }
         });
-
-        $this->uploadedFiles = $files;
     }
 }
