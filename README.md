@@ -1,12 +1,13 @@
-## HTTP server request wrapper for PHP 7.1+ (incl. PHP 8) based on PSR-7 & PSR-17
+# HTTP server request wrapper for PHP 7.1+ based on PSR-7 and PSR-17
 
-[![Gitter](https://badges.gitter.im/sunrise-php/support.png)](https://gitter.im/sunrise-php/support)
-[![Build Status](https://scrutinizer-ci.com/g/sunrise-php/http-server-request/badges/build.png?b=master)](https://scrutinizer-ci.com/g/sunrise-php/http-server-request/build-status/master)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/sunrise-php/http-server-request/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/sunrise-php/http-server-request/?branch=master)
+[![Build Status](https://circleci.com/gh/sunrise-php/http-server-request.svg?style=shield)](https://circleci.com/gh/sunrise-php/http-server-request)
 [![Code Coverage](https://scrutinizer-ci.com/g/sunrise-php/http-server-request/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/sunrise-php/http-server-request/?branch=master)
-[![Latest Stable Version](https://poser.pugx.org/sunrise/http-server-request/v/stable)](https://packagist.org/packages/sunrise/http-server-request)
-[![Total Downloads](https://poser.pugx.org/sunrise/http-server-request/downloads)](https://packagist.org/packages/sunrise/http-server-request)
-[![License](https://poser.pugx.org/sunrise/http-server-request/license)](https://packagist.org/packages/sunrise/http-server-request)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/sunrise-php/http-server-request/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/sunrise-php/http-server-request/?branch=master)
+[![Total Downloads](https://poser.pugx.org/sunrise/http-server-request/downloads?format=flat)](https://packagist.org/packages/sunrise/http-server-request)
+[![Latest Stable Version](https://poser.pugx.org/sunrise/http-server-request/v/stable?format=flat)](https://packagist.org/packages/sunrise/http-server-request)
+[![License](https://poser.pugx.org/sunrise/http-server-request/license?format=flat)](https://packagist.org/packages/sunrise/http-server-request)
+
+---
 
 ## Installation
 
@@ -27,8 +28,10 @@ $request = ServerRequestFactory::fromGlobals();
 ## Test run
 
 ```bash
-php vendor/bin/phpunit
+composer test
 ```
+
+---
 
 ## Useful links
 
