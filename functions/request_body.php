@@ -18,9 +18,14 @@ use Psr\Http\Message\StreamInterface;
 use Sunrise\Stream\StreamFactory;
 
 /**
+ * Import functions
+ */
+use function fopen;
+use function rewind;
+use function stream_copy_to_stream;
+
+/**
  * Gets the request body
- *
- * MUST NOT be used outside of this package.
  *
  * @return StreamInterface
  *
@@ -28,11 +33,11 @@ use Sunrise\Stream\StreamFactory;
  */
 function request_body() : StreamInterface
 {
-    $resource = \fopen('php://temp', 'r+b');
+    $resource = fopen('php://temp', 'r+b');
 
-    \stream_copy_to_stream(\fopen('php://input', 'rb'), $resource);
+    stream_copy_to_stream(fopen('php://input', 'rb'), $resource);
 
-    \rewind($resource);
+    rewind($resource);
 
     return (new StreamFactory)->createStreamFromResource($resource);
 }

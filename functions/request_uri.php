@@ -18,11 +18,14 @@ use Psr\Http\Message\UriInterface;
 use Sunrise\Uri\UriFactory;
 
 /**
+ * Import functions
+ */
+use function array_key_exists;
+
+/**
  * Gets the request URI from the given server environment
  *
- * MUST NOT be used outside of this package.
- *
- * @param array $server
+ * @param array<string, mixed> $server
  *
  * @return UriInterface
  *
@@ -30,33 +33,33 @@ use Sunrise\Uri\UriFactory;
  */
 function request_uri(array $server) : UriInterface
 {
-    if (\array_key_exists('HTTPS', $server)) {
+    if (array_key_exists('HTTPS', $server)) {
         if (! ('off' === $server['HTTPS'])) {
             $scheme = 'https://';
         }
     }
 
-    if (\array_key_exists('HTTP_HOST', $server)) {
-        $domain = $server['HTTP_HOST'];
-    } elseif (\array_key_exists('SERVER_NAME', $server)) {
-        $domain = $server['SERVER_NAME'];
-        if (\array_key_exists('SERVER_PORT', $server)) {
-            $domain .= ':' . $server['SERVER_PORT'];
+    if (array_key_exists('HTTP_HOST', $server)) {
+        $host = $server['HTTP_HOST'];
+    } elseif (array_key_exists('SERVER_NAME', $server)) {
+        $host = $server['SERVER_NAME'];
+        if (array_key_exists('SERVER_PORT', $server)) {
+            $host .= ':' . $server['SERVER_PORT'];
         }
     }
 
-    if (\array_key_exists('REQUEST_URI', $server)) {
+    if (array_key_exists('REQUEST_URI', $server)) {
         $target = $server['REQUEST_URI'];
-    } elseif (\array_key_exists('PHP_SELF', $server)) {
+    } elseif (array_key_exists('PHP_SELF', $server)) {
         $target = $server['PHP_SELF'];
-        if (\array_key_exists('QUERY_STRING', $server)) {
+        if (array_key_exists('QUERY_STRING', $server)) {
             $target .= '?' . $server['QUERY_STRING'];
         }
     }
 
     return (new UriFactory)->createUri(
         ($scheme ?? 'http://') .
-        ($domain ?? 'localhost') .
+        ($host ?? 'localhost') .
         ($target ?? '/')
     );
 }
