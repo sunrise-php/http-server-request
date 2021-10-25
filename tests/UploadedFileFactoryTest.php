@@ -74,7 +74,7 @@ class UploadedFileFactoryTest extends TestCase
     public function testCreateUploadedFileWithParameters() : void
     {
         $size = \random_int(\PHP_INT_MIN, \PHP_INT_MAX);
-        $error = \UPLOAD_ERR_NO_FILE;
+        $error = \UPLOAD_ERR_OK;
         $filename = 'photo.jpeg';
         $mediatype = 'image/jpeg';
 

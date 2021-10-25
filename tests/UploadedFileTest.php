@@ -228,7 +228,7 @@ class UploadedFileTest extends TestCase
         $uploadedFile = new UploadedFile($this->stream, null, $error);
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('The uploaded file cannot be moved due to an error');
+        $this->expectExceptionMessage('The uploaded file cannot be moved due to the error #' . $error);
 
         $uploadedFile->moveTo($this->targetPath);
     }

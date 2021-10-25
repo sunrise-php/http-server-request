@@ -131,7 +131,7 @@ class ServerRequestTest extends TestCase
         $req = new ServerRequest();
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Invalid uploaded files structure');
+        $this->expectExceptionMessage('Invalid uploaded files');
 
         $req->withUploadedFiles(['foo' => 'bar']);
     }
