@@ -23,7 +23,7 @@ use Sunrise\Uri\UriFactory;
 use function array_key_exists;
 
 /**
- * Gets the request URI from the given server environment
+ * Gets the request URI from the given server parameters
  *
  * @param array<string, mixed> $server
  *

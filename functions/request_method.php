@@ -12,13 +12,14 @@
 namespace Sunrise\Http\ServerRequest;
 
 /**
- * Gets the request method from the given server environment
+ * Gets the request method from the given server parameters
  *
  * @param array<string, mixed> $server
  *
  * @return string
  *
  * @link http://php.net/manual/en/reserved.variables.server.php
+ * @link https://datatracker.ietf.org/doc/html/rfc3875#section-4.1.12
  */
 function request_method(array $server) : string
 {
