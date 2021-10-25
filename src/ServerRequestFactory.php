@@ -76,8 +76,8 @@ class ServerRequestFactory implements ServerRequestFactoryInterface
             $method,
             $uri,
             request_headers($serverParams),
+            null, // body
             null, // request target
-            null, // protocol version
             request_protocol($serverParams),
             $serverParams
         );

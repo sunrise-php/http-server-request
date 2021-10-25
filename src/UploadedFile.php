@@ -149,16 +149,9 @@ class UploadedFile implements UploadedFileInterface
 
         $folder = dirname($targetPath);
 
-        if (!is_dir($folder)) {
+        if (!is_dir($folder) || !is_writeable($folder)) {
             throw new InvalidArgumentException(sprintf(
-                'The uploaded file cannot be moved. The directory "%s" does not exist',
-                $folder
-            ));
-        }
-
-        if (!is_writeable($folder)) {
-            throw new InvalidArgumentException(sprintf(
-                'The uploaded file cannot be moved. The directory "%s" is not writeable',
+                'The uploaded file cannot be moved because directory "%s" is not available',
                 $folder
             ));
         }
