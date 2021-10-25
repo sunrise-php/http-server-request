@@ -289,7 +289,7 @@ class ServerRequest extends Request implements ServerRequestInterface
 
         array_walk_recursive($files, function ($file) {
             if (! ($file instanceof UploadedFileInterface)) {
-                throw new InvalidArgumentException('Invalid uploaded files structure');
+                throw new InvalidArgumentException('Invalid uploaded files');
             }
         });
     }

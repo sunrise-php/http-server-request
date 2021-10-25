@@ -57,8 +57,8 @@ class ServerRequestFactory implements ServerRequestFactoryInterface
             request_uri($serverParams),
             request_headers($serverParams),
             request_body(),
-            null,
-            request_http_version($serverParams),
+            null, // request target
+            request_protocol($serverParams),
             $serverParams,
             $queryParams,
             $cookieParams,
@@ -72,15 +72,13 @@ class ServerRequestFactory implements ServerRequestFactoryInterface
      */
     public function createServerRequest(string $method, $uri, array $serverParams = []) : ServerRequestInterface
     {
-        // TODO: query from URI and cookies from the server environment (HTTP_COOKIE)...
-
         return new ServerRequest(
             $method,
             $uri,
             request_headers($serverParams),
-            null,
-            null,
-            request_http_version($serverParams),
+            null, // request target
+            null, // protocol version
+            request_protocol($serverParams),
             $serverParams
         );
     }
