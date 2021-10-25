@@ -25,7 +25,7 @@ $request = ServerRequestFactory::fromGlobals();
 // just use PSR-7 methods...
 ```
 
-#### HTTP Headers as Objects
+#### HTTP headers as objects
 
 * https://github.com/sunrise-php/http-header-kit
 
