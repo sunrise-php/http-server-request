@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Sunrise\Http\ServerRequest\Tests;
 
@@ -244,7 +246,7 @@ class UploadedFileTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
 
         $this->expectExceptionMessage(
-            \sprintf('The uploaded file cannot be moved. The directory "%s" does not exist', $this->targetPath)
+            \sprintf('The uploaded file cannot be moved because directory "%s" is not available', $this->targetPath)
         );
 
         $uploadedFile->moveTo($targetPath);
