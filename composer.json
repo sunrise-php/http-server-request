@@ -48,8 +48,8 @@
             "functions/request_body.php",
             "functions/request_files.php",
             "functions/request_headers.php",
-            "functions/request_http_version.php",
             "functions/request_method.php",
+            "functions/request_protocol.php",
             "functions/request_uri.php"
         ]
     },
