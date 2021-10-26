@@ -12,11 +12,6 @@
 namespace Sunrise\Http\ServerRequest;
 
 /**
- * Import classes
- */
-use Sunrise\Stream\StreamFactory;
-
-/**
  * Import functions
  */
 use function is_array;
@@ -29,38 +24,41 @@ use const UPLOAD_ERR_NO_FILE;
 /**
  * Normalizes the given uploaded files
  *
+ * Note that not sent files will not be handled.
+ *
  * @param array $files
  *
  * @return array
  *
  * @link http://php.net/manual/en/reserved.variables.files.php
+ * @link https://www.php.net/manual/ru/features.file-upload.post-method.php
+ * @link https://www.php.net/manual/ru/features.file-upload.multiple.php
+ * @link https://github.com/php/php-src/blob/8c5b41cefb88b753c630b731956ede8d9da30c5d/main/rfc1867.c
  */
 function request_files(array $files) : array
 {
     $walker = function ($path, $size, $error, $name, $type) use (&$walker) {
-        if (!is_array($path)) {
-            $stream = (new StreamFactory)
-                ->createStreamFromFile($path, 'rb');
-
-            return (new UploadedFileFactory)
-                ->createUploadedFile(
-                    $stream,
-                    $size,
-                    $error,
-                    $name,
-                    $type
-                );
+        if (! is_array($path)) {
+            return new UploadedFile(
+                $path,
+                $size,
+                $error,
+                $name,
+                $type
+            );
         }
 
         $result = [];
-        foreach ($path as $key => $value) {
-            $result[$key] = $walker(
-                $path[$key],
-                $size[$key],
-                $error[$key],
-                $name[$key],
-                $type[$key]
-            );
+        foreach ($path as $key => $_) {
+            if (UPLOAD_ERR_NO_FILE <> $error[$key]) {
+                $result[$key] = $walker(
+                    $path[$key],
+                    $size[$key],
+                    $error[$key],
+                    $name[$key],
+                    $type[$key]
+                );
+            }
         }
 
         return $result;

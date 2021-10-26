@@ -1,21 +1,21 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Sunrise\Http\ServerRequest\Tests;
 
 /**
  * Import classes
  */
-use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Sunrise\Http\Message\Request;
 use Sunrise\Http\ServerRequest\ServerRequest;
 use Sunrise\Http\ServerRequest\UploadedFile;
-use Sunrise\Stream\StreamFactory;
 
 /**
  * ServerRequestTest
  */
-class ServerRequestTest extends TestCase
+class ServerRequestTest extends AbstractTestCase
 {
 
     /**
@@ -23,10 +23,10 @@ class ServerRequestTest extends TestCase
      */
     public function testContracts() : void
     {
-        $req = new ServerRequest();
+        $request = new ServerRequest();
 
-        $this->assertInstanceOf(ServerRequestInterface::class, $req);
-        $this->assertInstanceOf(Request::class, $req);
+        $this->assertInstanceOf(Request::class, $request);
+        $this->assertInstanceOf(ServerRequestInterface::class, $request);
     }
 
     /**
@@ -34,198 +34,200 @@ class ServerRequestTest extends TestCase
      */
     public function testConstructor() : void
     {
-        $body = (new StreamFactory)->createStream();
-        $file = new UploadedFile($body);
+        $stream = $this->createStream();
+        $uploadedFile = new UploadedFile($stream);
 
-        $request = new ServerRequest(
+        $dataset = [
+            // method
             'POST',
+            // URI
             'http://localhost:8000/foo?bar',
+            // headers
             ['X-Foo' => 'bar'],
-            $body,
+            // body
+            $stream,
+            // request target
             '/bar?baz',
+            // protocol version
             '2.0',
+            // server params
             ['foo' => 'bar'],
+            // query params
             ['bar' => 'baz'],
+            // cookie params
             ['baz' => 'bat'],
-            ['bat' => $file],
+            // uploaded files
+            ['bat' => $uploadedFile],
+            // parsed body
             ['qux' => 'quux'],
-            ['quux' => 'quuux']
-        );
-
-        $this->assertSame('POST', $request->getMethod());
-        $this->assertSame('http://localhost:8000/foo?bar', (string) $request->getUri());
-        $this->assertSame(['X-Foo' => ['bar'], 'Host' => ['localhost:8000']], $request->getHeaders());
-        $this->assertSame($body, $request->getBody());
-        $this->assertSame('/bar?baz', $request->getRequestTarget());
-        $this->assertSame('2.0', $request->getProtocolVersion());
-        $this->assertSame(['foo' => 'bar'], $request->getServerParams());
-        $this->assertSame(['bar' => 'baz'], $request->getQueryParams());
-        $this->assertSame(['baz' => 'bat'], $request->getCookieParams());
-        $this->assertSame(['bat' => $file], $request->getUploadedFiles());
-        $this->assertSame(['qux' => 'quux'], $request->getParsedBody());
-        $this->assertSame(['quux' => 'quuux'], $request->getAttributes());
-    }
-
-    /**
-     * @return void
-     */
-    public function testQueryParams() : void
-    {
-        $params = ['foo' => 'bar'];
-
-        $req = new ServerRequest();
-        $this->assertEquals([], $req->getQueryParams());
-
-        $clone = $req->withQueryParams($params);
-        $this->assertInstanceOf(ServerRequestInterface::class, $clone);
-        $this->assertEquals([], $req->getQueryParams());
-        $this->assertEquals($params, $clone->getQueryParams());
-    }
-
-    /**
-     * @return void
-     */
-    public function testCookieParams() : void
-    {
-        $params = ['foo' => 'bar'];
-
-        $req = new ServerRequest();
-        $this->assertEquals([], $req->getCookieParams());
-
-        $clone = $req->withCookieParams($params);
-        $this->assertInstanceOf(ServerRequestInterface::class, $clone);
-        $this->assertEquals([], $req->getCookieParams());
-        $this->assertEquals($params, $clone->getCookieParams());
-    }
-
-    /**
-     * @return void
-     */
-    public function testUploadedFiles() : void
-    {
-        $stream = (new StreamFactory)->createStreamFromFile('php://memory', 'rb');
-
-        $uploadedFiles = [
-            'foo' => new UploadedFile($stream),
-            'bar' => [
-                'baz' => new UploadedFile($stream),
-            ],
+            // attributes
+            ['quux' => 'quuux'],
         ];
 
-        $req = new ServerRequest();
-        $this->assertEquals([], $req->getUploadedFiles());
+        $request = new ServerRequest(...$dataset);
 
-        $clone = $req->withUploadedFiles($uploadedFiles);
-        $this->assertInstanceOf(ServerRequestInterface::class, $clone);
-        $this->assertEquals([], $req->getUploadedFiles());
-        $this->assertEquals($uploadedFiles, $clone->getUploadedFiles());
-
-        $stream->close();
+        $this->assertSame($dataset[0], $request->getMethod());
+        $this->assertSame($dataset[1], (string) $request->getUri());
+        $this->assertSame($dataset[2]['X-Foo'], $request->getHeaderLine('X-Foo'));
+        $this->assertSame($dataset[3], $request->getBody());
+        $this->assertSame($dataset[4], $request->getRequestTarget());
+        $this->assertSame($dataset[5], $request->getProtocolVersion());
+        $this->assertSame($dataset[6], $request->getServerParams());
+        $this->assertSame($dataset[7], $request->getQueryParams());
+        $this->assertSame($dataset[8], $request->getCookieParams());
+        $this->assertSame($dataset[9], $request->getUploadedFiles());
+        $this->assertSame($dataset[10], $request->getParsedBody());
+        $this->assertSame($dataset[11], $request->getAttributes());
     }
 
     /**
      * @return void
      */
-    public function testInvalidUploadedFilesStructure() : void
+    public function testConstructorWithInvalidUploadedFiles() : void
     {
-        $req = new ServerRequest();
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid uploaded files');
+
+        new ServerRequest(null, null, null, null, null, null, [], [], [], ['foo' => 'bar']);
+    }
+
+    /**
+     * @return void
+     */
+    public function testConstructorWithInvalidParsedBody() : void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid parsed body');
+
+        new ServerRequest(null, null, null, null, null, null, [], [], [], [], \STDOUT);
+    }
+
+    /**
+     * @return void
+     */
+    public function testSetQueryParams() : void
+    {
+        $queryParams = ['foo' => 'bar'];
+
+        $request = new ServerRequest();
+        $this->assertSame([], $request->getQueryParams());
+
+        $clone = $request->withQueryParams($queryParams);
+        $this->assertInstanceOf(ServerRequestInterface::class, $clone);
+        $this->assertNotSame($request, $clone);
+        $this->assertSame([], $request->getQueryParams());
+        $this->assertSame($queryParams, $clone->getQueryParams());
+    }
+
+    /**
+     * @return void
+     */
+    public function testSetCookieParams() : void
+    {
+        $cookieParams = ['foo' => 'bar'];
+
+        $request = new ServerRequest();
+        $this->assertSame([], $request->getCookieParams());
+
+        $clone = $request->withCookieParams($cookieParams);
+        $this->assertInstanceOf(ServerRequestInterface::class, $clone);
+        $this->assertNotSame($request, $clone);
+        $this->assertSame([], $request->getCookieParams());
+        $this->assertSame($cookieParams, $clone->getCookieParams());
+    }
+
+    /**
+     * @return void
+     */
+    public function testSetUploadedFiles() : void
+    {
+        $uploadedFiles = ['foo' => new UploadedFile($this->createStream())];
+
+        $request = new ServerRequest();
+        $this->assertSame([], $request->getUploadedFiles());
+
+        $clone = $request->withUploadedFiles($uploadedFiles);
+        $this->assertInstanceOf(ServerRequestInterface::class, $clone);
+        $this->assertNotSame($request, $clone);
+        $this->assertSame([], $request->getUploadedFiles());
+        $this->assertSame($uploadedFiles, $clone->getUploadedFiles());
+    }
+
+    /**
+     * @return void
+     */
+    public function testSetInvalidUploadedFiles() : void
+    {
+        $request = new ServerRequest();
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Invalid uploaded files structure');
+        $this->expectExceptionMessage('Invalid uploaded files');
 
-        $req->withUploadedFiles(['foo' => 'bar']);
+        $request->withUploadedFiles(['foo' => 'bar']);
     }
 
     /**
-     * @dataProvider parsedBodyProvider
-     *
      * @return void
      */
-    public function testParsedBody($parsedBody) : void
+    public function testSetParsedBody() : void
     {
-        $req = new ServerRequest();
-        $this->assertNull($req->getParsedBody());
+        $parsedBody = ['foo' => 'bar'];
 
-        $clone = $req->withParsedBody($parsedBody);
+        $request = new ServerRequest();
+        $this->assertNull($request->getParsedBody());
+
+        $clone = $request->withParsedBody($parsedBody);
         $this->assertInstanceOf(ServerRequestInterface::class, $clone);
-        $this->assertNull($req->getParsedBody());
-        $this->assertEquals($parsedBody, $clone->getParsedBody());
+        $this->assertNotSame($request, $clone);
+        $this->assertNull($request->getParsedBody());
+        $this->assertSame($parsedBody, $clone->getParsedBody());
     }
 
     /**
-     * @dataProvider attributesProvider
-     *
      * @return void
      */
-    public function testSetAttribute($key, $value) : void
+    public function testSetInvalidParsedBody() : void
     {
-        $req = new ServerRequest();
-        $this->assertEquals([], $req->getAttributes());
+        $request = new ServerRequest();
 
-        $clone = $req->withAttribute($key, $value);
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid parsed body');
+
+        $request->withParsedBody(\STDOUT);
+    }
+
+    /**
+     * @return void
+     */
+    public function testSetAttributes() : void
+    {
+        $request = new ServerRequest();
+        $this->assertSame([], $request->getAttributes());
+        $this->assertSame(null, $request->getAttribute('foo'));
+        $this->assertSame(false, $request->getAttribute('foo', false));
+
+        $clone = $request->withAttribute('foo', 'bar');
         $this->assertInstanceOf(ServerRequestInterface::class, $clone);
-        $this->assertEquals([], $req->getAttributes());
-        $this->assertEquals([$key => $value], $clone->getAttributes());
+        $this->assertNotSame($request, $clone);
+        $this->assertSame([], $request->getAttributes());
+        $this->assertSame(null, $request->getAttribute('foo'));
+        $this->assertSame(['foo' => 'bar'], $clone->getAttributes());
+        $this->assertSame('bar', $clone->getAttribute('foo'));
     }
 
     /**
      * @return void
      */
-    public function testGetAttribute() : void
+    public function testRemoveAttributes() : void
     {
-        $req = (new ServerRequest)
-            ->withAttribute('foo', 'bar')
-            ->withAttribute('bar', 'baz');
+        $request = (new ServerRequest)->withAttribute('foo', 'bar');
 
-        $this->assertEquals('bar', $req->getAttribute('foo'));
-        $this->assertEquals('baz', $req->getAttribute('bar'));
-        $this->assertNull($req->getAttribute('baz'));
-        $this->assertFalse($req->getAttribute('baz', false));
-    }
-
-    /**
-     * @return void
-     */
-    public function testDeleteAttribute() : void
-    {
-        $req = (new ServerRequest)
-            ->withAttribute('foo', 'bar')
-            ->withAttribute('bar', 'baz');
-
-        $clone1 = $req->withoutAttribute('foo');
-        $this->assertInstanceOf(ServerRequestInterface::class, $clone1);
-        $this->assertEquals(['bar' => 'baz'], $clone1->getAttributes());
-        $this->assertNull($clone1->getAttribute('foo'));
-
-        $clone2 = $clone1->withoutAttribute('bar');
-        $this->assertInstanceOf(ServerRequestInterface::class, $clone2);
-        $this->assertEquals([], $clone2->getAttributes());
-        $this->assertNull($clone2->getAttribute('bar'));
-    }
-
-    // Providers...
-
-    /**
-     * @return array
-     */
-    public function parsedBodyProvider() : array
-    {
-        return [
-            [null],
-            ['foo bar'],
-            [['foo' => 'bar']],
-        ];
-    }
-
-    /**
-     * @return array
-     */
-    public function attributesProvider() : array
-    {
-        return [
-            ['foo', null],
-            ['foo', 'bar'],
-            ['foo', ['bar']],
-        ];
+        $clone = $request->withoutAttribute('foo');
+        $this->assertInstanceOf(ServerRequestInterface::class, $clone);
+        $this->assertNotSame($request, $clone);
+        $this->assertSame(['foo' => 'bar'], $request->getAttributes());
+        $this->assertSame('bar', $request->getAttribute('foo'));
+        $this->assertSame([], $clone->getAttributes());
+        $this->assertSame(null, $clone->getAttribute('foo'));
     }
 }

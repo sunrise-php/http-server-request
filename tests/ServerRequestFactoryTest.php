@@ -1,31 +1,28 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Sunrise\Http\ServerRequest\Tests;
 
 /**
  * Import classes
  */
-use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestFactoryInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
+use Psr\Http\Message\UploadedFileInterface;
 use Sunrise\Http\ServerRequest\ServerRequestFactory;
 
 /**
  * ServerRequestFactoryTest
  */
-class ServerRequestFactoryTest extends TestCase
+class ServerRequestFactoryTest extends AbstractTestCase
 {
-
-    /**
-     * @var array
-     */
-    private $tmpfiles = [];
 
     /**
      * @return void
      */
-    public function testConstructor() : void
+    public function testContracts() : void
     {
         $factory = new ServerRequestFactory();
 
@@ -37,23 +34,29 @@ class ServerRequestFactoryTest extends TestCase
      */
     public function testCreateServerRequest() : void
     {
-        $method = 'GET';
-        $uri = 'http://localhost:3000/';
-        $server = $_SERVER;
+        $verb = 'GET';
+        $uri = 'http://localhost:8000/';
 
-        $request = (new ServerRequestFactory)->createServerRequest($method, $uri, $server);
+        $serverParams = [];
+        $serverParams['HTTP_X_FOO'] = 'bar';
+        $serverParams['SERVER_PROTOCOL'] = 'HTTP/1.0';
+
+        $expectedHeaders = ['X-Foo' => ['bar'], 'Host' => ['localhost:8000']];
+        $expectedProtocolVersion = '1.0';
+
+        $request = (new ServerRequestFactory)->createServerRequest($verb, $uri, $serverParams);
 
         $this->assertInstanceOf(ServerRequestInterface::class, $request);
-        $this->assertEquals($method, $request->getMethod());
-        $this->assertEquals($uri, (string) $request->getUri());
-        $this->assertEquals($server, $request->getServerParams());
-
-        // default body of the request...
+        $this->assertSame($verb, $request->getMethod());
+        $this->assertSame($uri, (string) $request->getUri());
+        $this->assertSame($serverParams, $request->getServerParams());
+        $this->assertSame($expectedHeaders, $request->getHeaders());
+        $this->assertSame($expectedProtocolVersion, $request->getProtocolVersion());
         $this->assertInstanceOf(StreamInterface::class, $request->getBody());
         $this->assertTrue($request->getBody()->isSeekable());
         $this->assertTrue($request->getBody()->isWritable());
         $this->assertTrue($request->getBody()->isReadable());
-        $this->assertEquals('php://temp', $request->getBody()->getMetadata('uri'));
+        $this->assertSame('php://temp', $request->getBody()->getMetadata('uri'));
     }
 
     /**
@@ -63,99 +66,109 @@ class ServerRequestFactoryTest extends TestCase
      */
     public function testCreateServerRequestFromGlobals() : void
     {
-        $file = ['tmp_name' => $this->tmpfile(), 'size' => 0, 'error' => \UPLOAD_ERR_OK, 'name' => '', 'type' => ''];
+        $file = [
+            'tmp_name' => $this->createStream()->getMetadata('uri'),
+            'size' => 1,
+            'error' => \UPLOAD_ERR_OK,
+            'name' => '10482301-2db0-473a-8881-c6288945ad0b',
+            'type' => '1408315d-36bf-4201-952c-cb07c616313c',
+        ];
 
         $_SERVER = ['foo'  => 'bar'];
         $_GET    = ['bar'  => 'baz'];
-        $_POST   = ['baz'  => 'qux'];
-        $_COOKIE = ['qux'  => 'quux'];
-        $_FILES  = ['quux' => $file];
+        $_COOKIE = ['baz'  => 'bat'];
+        $_FILES  = ['bat' => $file];
+        $_POST   = ['qux'  => 'quux'];
 
         $request = ServerRequestFactory::fromGlobals();
         $this->assertInstanceOf(ServerRequestInterface::class, $request);
 
-        $this->assertEquals($_SERVER, $request->getServerParams());
-        $this->assertEquals($_GET, $request->getQueryParams());
-        $this->assertEquals($_POST, $request->getParsedBody());
-        $this->assertEquals($_COOKIE, $request->getCookieParams());
+        $this->assertSame($_SERVER, $request->getServerParams());
+        $this->assertSame($_GET, $request->getQueryParams());
+        $this->assertSame($_COOKIE, $request->getCookieParams());
+        $this->assertArrayHasKey('bat', $request->getUploadedFiles());
+        $this->assertSame($_POST, $request->getParsedBody());
 
-        $this->assertEquals(
-            $_FILES['quux']['tmp_name'],
-            $request->getUploadedFiles()['quux']->getStream()->getMetadata('uri')
-        );
+        $uploadedFile = $request->getUploadedFiles()['bat'];
+        $this->assertInstanceOf(UploadedFileInterface::class, $uploadedFile);
+        $this->assertSame($_FILES['bat']['tmp_name'], $uploadedFile->getStream()->getMetadata('uri'));
+        $this->assertSame($_FILES['bat']['size'], $uploadedFile->getSize());
+        $this->assertSame($_FILES['bat']['error'], $uploadedFile->getError());
+        $this->assertSame($_FILES['bat']['name'], $uploadedFile->getClientFilename());
+        $this->assertSame($_FILES['bat']['type'], $uploadedFile->getClientMediaType());
     }
 
     /**
      * @return void
      */
-    public function testCreateServerRequestFromGlobalsWithServer() : void
+    public function testCreateServerRequestFromGlobalsWithServerParams() : void
     {
-        $server = ['foo' => 'bar'];
-        $request = ServerRequestFactory::fromGlobals($server, [], [], [], []);
-        $this->assertEquals($server, $request->getServerParams());
+        $serverParams = ['foo' => 'bar'];
+        $request = ServerRequestFactory::fromGlobals($serverParams, [], [], [], []);
+        $this->assertSame($serverParams, $request->getServerParams());
     }
 
     /**
      * @return void
      */
-    public function testCreateServerRequestFromGlobalsWithQuery() : void
+    public function testCreateServerRequestFromGlobalsWithQueryParams() : void
     {
-        $query = ['foo' => 'bar'];
-        $request = ServerRequestFactory::fromGlobals([], $query, [], [], []);
-        $this->assertEquals($query, $request->getQueryParams());
+        $queryParams = ['foo' => 'bar'];
+        $request = ServerRequestFactory::fromGlobals([], $queryParams, [], [], []);
+        $this->assertSame($queryParams, $request->getQueryParams());
     }
 
     /**
      * @return void
      */
-    public function testCreateServerRequestFromGlobalsWithCookies() : void
+    public function testCreateServerRequestFromGlobalsWithCookieParams() : void
     {
-        $cookies = ['foo' => 'bar'];
-        $request = ServerRequestFactory::fromGlobals([], [], $cookies, [], []);
-        $this->assertEquals($cookies, $request->getCookieParams());
+        $cookieParams = ['foo' => 'bar'];
+        $request = ServerRequestFactory::fromGlobals([], [], $cookieParams, [], []);
+        $this->assertSame($cookieParams, $request->getCookieParams());
     }
 
     /**
      * @return void
      */
-    public function testCreateServerRequestFromGlobalsWithBody() : void
+    public function testCreateServerRequestFromGlobalsWithParsedBody() : void
     {
-        $body = ['foo' => 'bar'];
-        $request = ServerRequestFactory::fromGlobals([], [], [], [], $body);
-        $this->assertEquals($body, $request->getParsedBody());
+        $parsedBody = ['foo' => 'bar'];
+        $request = ServerRequestFactory::fromGlobals([], [], [], [], $parsedBody);
+        $this->assertSame($parsedBody, $request->getParsedBody());
     }
 
     /**
      * @return void
      */
-    public function testCreateServerRequestFromGlobalsWithFiles() : void
+    public function testCreateServerRequestFromGlobalsWithUploadedFiles() : void
     {
-        $files['foo']['tmp_name'] = $this->tmpfile();
-        $files['foo']['size'] = 0;
+        $files['foo']['tmp_name'] = $this->createStream()->getMetadata('uri');
+        $files['foo']['size'] = 100;
         $files['foo']['error'] = \UPLOAD_ERR_OK;
-        $files['foo']['name'] = 'foo.txt';
-        $files['foo']['type'] = 'text/plain';
+        $files['foo']['name'] = '8832d847-fe04-4e86-b933-9e74d109cd9b';
+        $files['foo']['type'] = '3a7b7995-2900-4834-b165-1de8ede90587';
 
-        $files['bar']['tmp_name'][0] = $this->tmpfile();
-        $files['bar']['size'][0] = 0;
+        $files['bar']['tmp_name'][0] = $this->createStream()->getMetadata('uri');
+        $files['bar']['size'][0] = 200;
         $files['bar']['error'][0] = \UPLOAD_ERR_OK;
-        $files['bar']['name'][0] = 'bar.txt';
-        $files['bar']['type'][0] = 'text/plain';
+        $files['bar']['name'][0] = '4e7d2e48-90f4-477c-8859-5f69d29835c4';
+        $files['bar']['type'][0] = 'c53d3703-63d7-409a-822c-6ee1424023b2';
 
         $request = ServerRequestFactory::fromGlobals([], [], [], $files, []);
         $uploadedFiles = $request->getUploadedFiles();
 
-        $this->assertEquals($files['foo']['tmp_name'], $uploadedFiles['foo']->getStream()->getMetadata('uri'));
-        $this->assertEquals($files['foo']['size'], $uploadedFiles['foo']->getSize());
-        $this->assertEquals($files['foo']['error'], $uploadedFiles['foo']->getError());
-        $this->assertEquals($files['foo']['name'], $uploadedFiles['foo']->getClientFilename());
-        $this->assertEquals($files['foo']['type'], $uploadedFiles['foo']->getClientMediaType());
+        $this->assertSame($files['foo']['tmp_name'], $uploadedFiles['foo']->getStream()->getMetadata('uri'));
+        $this->assertSame($files['foo']['size'], $uploadedFiles['foo']->getSize());
+        $this->assertSame($files['foo']['error'], $uploadedFiles['foo']->getError());
+        $this->assertSame($files['foo']['name'], $uploadedFiles['foo']->getClientFilename());
+        $this->assertSame($files['foo']['type'], $uploadedFiles['foo']->getClientMediaType());
 
-        $this->assertEquals($files['bar']['tmp_name'][0], $uploadedFiles['bar'][0]->getStream()->getMetadata('uri'));
-        $this->assertEquals($files['bar']['size'][0], $uploadedFiles['bar'][0]->getSize());
-        $this->assertEquals($files['bar']['error'][0], $uploadedFiles['bar'][0]->getError());
-        $this->assertEquals($files['bar']['name'][0], $uploadedFiles['bar'][0]->getClientFilename());
-        $this->assertEquals($files['bar']['type'][0], $uploadedFiles['bar'][0]->getClientMediaType());
+        $this->assertSame($files['bar']['tmp_name'][0], $uploadedFiles['bar'][0]->getStream()->getMetadata('uri'));
+        $this->assertSame($files['bar']['size'][0], $uploadedFiles['bar'][0]->getSize());
+        $this->assertSame($files['bar']['error'][0], $uploadedFiles['bar'][0]->getError());
+        $this->assertSame($files['bar']['name'][0], $uploadedFiles['bar'][0]->getClientFilename());
+        $this->assertSame($files['bar']['type'][0], $uploadedFiles['bar'][0]->getClientMediaType());
     }
 
     /**
@@ -166,10 +179,10 @@ class ServerRequestFactoryTest extends TestCase
         $files = [
             'foo' => [
                 'error' => \UPLOAD_ERR_NO_FILE,
-                'size' => 0,
-                'tmp_name' => '',
-                'name' => '',
-                'type' => '',
+                'size' => 100,
+                'tmp_name' => $this->createStream()->getMetadata('uri'),
+                'name' => '12e3ee6c-7ba7-432a-88d7-8d15405cfeb8',
+                'type' => 'f01cbcd9-9112-4267-8309-b41daf6da57f',
             ],
         ];
 
@@ -181,74 +194,59 @@ class ServerRequestFactoryTest extends TestCase
     /**
      * @dataProvider headersFromGlobalsProvider
      *
+     * @param array<string, string> $serverParams
+     * @param mixed $expectedValue
+     * @param string|null $key
+     *
      * @return void
      */
-    public function testHeadersFromGlobals($header, $expectedValue) : void
+    public function testHeadersFromGlobals($serverParams, $expectedValue, $key = null) : void
     {
-        $request = ServerRequestFactory::fromGlobals($header);
-        $this->assertEquals($expectedValue, $request->getHeader('foo'));
+        $request = ServerRequestFactory::fromGlobals($serverParams);
+        $this->assertSame($expectedValue, $request->getHeader($key ?? 'foo'));
     }
 
     /**
      * @dataProvider protocolVersionFromGlobalsProvider
      *
+     * @param array<string, string> $serverParams
+     * @param mixed $expectedValue
+     *
      * @return void
      */
-    public function testProtocolVersionFromGlobals($protocolVersion, $expectedValue) : void
+    public function testProtocolVersionFromGlobals($serverParams, $expectedValue) : void
     {
-        $request = ServerRequestFactory::fromGlobals($protocolVersion);
-        $this->assertEquals($expectedValue, $request->getProtocolVersion());
+        $request = ServerRequestFactory::fromGlobals($serverParams);
+        $this->assertSame($expectedValue, $request->getProtocolVersion());
     }
 
     /**
      * @dataProvider methodFromGlobalsProvider
      *
+     * @param array<string, string> $serverParams
+     * @param mixed $expectedValue
+     *
      * @return void
      */
-    public function testMethodFromGlobals($requestMethod, $expectedValue) : void
+    public function testMethodFromGlobals($serverParams, $expectedValue) : void
     {
-        $request = ServerRequestFactory::fromGlobals($requestMethod);
-        $this->assertEquals($expectedValue, $request->getMethod());
+        $request = ServerRequestFactory::fromGlobals($serverParams);
+        $this->assertSame($expectedValue, $request->getMethod());
     }
 
     /**
      * @dataProvider uriFromGlobalsProvider
      *
+     * @param array<string, string> $serverParams
+     * @param mixed $expectedValue
+     *
      * @return void
      */
-    public function testUriFromGlobals($uri, $expectedValue) : void
+    public function testUriFromGlobals($serverParams, $expectedValue) : void
     {
-        $request = ServerRequestFactory::fromGlobals($uri);
-        $this->assertEquals($expectedValue, (string) $request->getUri());
+        $request = ServerRequestFactory::fromGlobals($serverParams);
+        $this->assertSame($expectedValue, (string) $request->getUri());
     }
-
-    /**
-     * @return void
-     */
-    protected function tearDown() : void
-    {
-        $tmpfiles = $this->tmpfiles;
-        $this->tmpfiles = [];
-
-        foreach ($tmpfiles as $tmpfile) {
-            @\unlink($tmpfile);
-        }
-    }
-
-    /**
-     * @return string
-     */
-    private function tmpfile() : string
-    {
-        $folder = \sys_get_temp_dir();
-        $tmpfile = \tempnam($folder, 'sunrise');
-
-        $this->tmpfiles[] = $tmpfile;
-
-        return $tmpfile;
-    }
-
-    // providers...
 
     /**
      * @return array
@@ -263,6 +261,16 @@ class ServerRequestFactoryTest extends TestCase
             [
                 ['HTTP_FOO' => 'bar'],
                 ['bar'],
+            ],
+            [
+                ['CONTENT_LENGTH' => '100'],
+                ['100'],
+                'Content-Length',
+            ],
+            [
+                ['CONTENT_TYPE' => 'application/json'],
+                ['application/json'],
+                'Content-Type',
             ],
         ];
     }
@@ -284,6 +292,10 @@ class ServerRequestFactoryTest extends TestCase
             [
                 ['SERVER_PROTOCOL' => 'HTTP/2'],
                 '2',
+            ],
+            [
+                ['SERVER_PROTOCOL' => 'oO'],
+                '1.1',
             ],
         ];
     }

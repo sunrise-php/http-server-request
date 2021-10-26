@@ -21,27 +21,35 @@ use function substr;
 use function ucwords;
 
 /**
- * Gets the request headers from the given server environment
+ * Gets the request headers from the given server parameters
  *
  * @param array<string, mixed> $server
  *
  * @return array<string, string>
  *
  * @link http://php.net/manual/en/reserved.variables.server.php
+ * @link https://datatracker.ietf.org/doc/html/rfc3875#section-4.1.18
  */
 function request_headers(array $server) : array
 {
+    // https://datatracker.ietf.org/doc/html/rfc3875#section-4.1.2
+    if (!isset($server['HTTP_CONTENT_LENGTH']) && isset($server['CONTENT_LENGTH'])) {
+        $server['HTTP_CONTENT_LENGTH'] = $server['CONTENT_LENGTH'];
+    }
+
+    // https://datatracker.ietf.org/doc/html/rfc3875#section-4.1.3
+    if (!isset($server['HTTP_CONTENT_TYPE']) && isset($server['CONTENT_TYPE'])) {
+        $server['HTTP_CONTENT_TYPE'] = $server['CONTENT_TYPE'];
+    }
+
     $result = [];
     foreach ($server as $key => $value) {
         if (0 <> strncmp('HTTP_', $key, 5)) {
             continue;
         }
 
-        $name = substr($key, 5);
-        $name = strtolower($name);
-        $name = strtr($name, '_', ' ');
-        $name = ucwords($name);
-        $name = strtr($name, ' ', '-');
+        $name = strtr(substr($key, 5), '_', '-');
+        $name = ucwords(strtolower($name), '-');
 
         $result[$name] = $value;
     }

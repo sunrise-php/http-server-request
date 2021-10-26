@@ -25,13 +25,23 @@ $request = ServerRequestFactory::fromGlobals();
 // just use PSR-7 methods...
 ```
 
+#### HTTP headers as objects
+
+* https://github.com/sunrise-php/http-header-kit
+
+#### Related PSR-7 packages
+
+* https://github.com/sunrise-php/http-message
+* https://github.com/sunrise-php/stream
+* https://github.com/sunrise-php/uri
+
+---
+
 ## Test run
 
 ```bash
 composer test
 ```
-
----
 
 ## Useful links
 

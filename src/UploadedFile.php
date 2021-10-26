@@ -46,7 +46,7 @@ class UploadedFile implements UploadedFileInterface
      *
      * @var StreamInterface|null
      */
-    protected $stream;
+    protected $stream = null;
 
     /**
      * The file size
@@ -79,22 +79,26 @@ class UploadedFile implements UploadedFileInterface
     /**
      * Constructor of the class
      *
-     * @param StreamInterface $stream
+     * @param StreamInterface|string $file
      * @param int|null $size
      * @param int $error
      * @param string|null $clientFilename
      * @param string|null $clientMediaType
      */
     public function __construct(
-        StreamInterface $stream,
+        $file,
         ?int $size = null,
         int $error = UPLOAD_ERR_OK,
         ?string $clientFilename = null,
         ?string $clientMediaType = null
     ) {
-        $this->stream = $stream;
-        $this->size = $size ?? $stream->getSize();
+        if (UPLOAD_ERR_OK === $error) {
+            $this->stream = $this->createStream($file);
+        }
+
+        $this->size = $size;
         $this->error = $error;
+
         $this->clientFilename = $clientFilename;
         $this->clientMediaType = $clientMediaType;
     }
@@ -106,6 +110,13 @@ class UploadedFile implements UploadedFileInterface
      */
     public function getStream() : StreamInterface
     {
+        if (UPLOAD_ERR_OK <> $this->error) {
+            throw new RuntimeException(sprintf(
+                'The uploaded file does not have a stream due to the error #%d',
+                $this->error
+            ));
+        }
+
         if (! ($this->stream instanceof StreamInterface)) {
             throw new RuntimeException('The uploaded file already moved');
         }
@@ -121,25 +132,22 @@ class UploadedFile implements UploadedFileInterface
      */
     public function moveTo($targetPath) : void
     {
+        if (UPLOAD_ERR_OK <> $this->error) {
+            throw new RuntimeException(sprintf(
+                'The uploaded file cannot be moved due to the error #%d',
+                $this->error
+            ));
+        }
+
         if (! ($this->stream instanceof StreamInterface)) {
             throw new RuntimeException('The uploaded file already moved');
         }
 
-        if (UPLOAD_ERR_OK <> $this->error) {
-            throw new RuntimeException('The uploaded file cannot be moved due to an error');
-        }
-
         $folder = dirname($targetPath);
-        if (!is_dir($folder)) {
-            throw new InvalidArgumentException(sprintf(
-                'The uploaded file cannot be moved. The directory "%s" does not exist',
-                $folder
-            ));
-        }
 
-        if (!is_writeable($folder)) {
+        if (!is_dir($folder) || !is_writeable($folder)) {
             throw new InvalidArgumentException(sprintf(
-                'The uploaded file cannot be moved. The directory "%s" is not writeable',
+                'The uploaded file cannot be moved because directory "%s" is not available',
                 $folder
             ));
         }
@@ -187,5 +195,27 @@ class UploadedFile implements UploadedFileInterface
     public function getClientMediaType() : ?string
     {
         return $this->clientMediaType;
+    }
+
+    /**
+     * Creates a stream from the given file
+     *
+     * @param StreamInterface|string $file
+     *
+     * @return StreamInterface
+     *
+     * @throws InvalidArgumentException
+     */
+    protected function createStream($file) : StreamInterface
+    {
+        if ($file instanceof StreamInterface) {
+            return $file;
+        }
+
+        if (is_string($file)) {
+            return (new StreamFactory)->createStreamFromFile($file, 'rb');
+        }
+
+        throw new InvalidArgumentException('Invalid uploaded file');
     }
 }
