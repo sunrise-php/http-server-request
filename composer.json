@@ -53,6 +53,11 @@
             "functions/request_uri.php"
         ]
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Sunrise\\Http\\ServerRequest\\Tests\\": "tests/"
+        }
+    },
     "scripts": {
         "test": [
             "phpcs",
