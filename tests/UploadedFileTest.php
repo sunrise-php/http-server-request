@@ -7,173 +7,71 @@ namespace Sunrise\Http\ServerRequest\Tests;
 /**
  * Import classes
  */
-use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UploadedFileInterface;
 use Sunrise\Http\ServerRequest\UploadedFile;
-use Sunrise\Stream\StreamFactory;
 
 /**
  * UploadedFileTest
  */
-class UploadedFileTest extends TestCase
+class UploadedFileTest extends AbstractTestCase
 {
-
-    /**
-     * @var null|StreamInterface
-     */
-    private $stream;
-
-    /**
-     * @var string
-     */
-    private $targetPath = '';
-
-    /**
-     * @return void
-     */
-    protected function setUp() : void
-    {
-        $this->stream = (new StreamFactory)->createStreamFromFile('php://memory', 'r+b');
-
-        $this->targetPath = \sys_get_temp_dir() . '/' . \bin2hex(\random_bytes(16));
-    }
-
-    /**
-     * @return void
-     */
-    protected function tearDown() : void
-    {
-        if ($this->stream instanceof StreamInterface) {
-            $this->stream->close();
-        }
-
-        if (\file_exists($this->targetPath)) {
-            @\unlink($this->targetPath);
-        }
-    }
 
     /**
      * @return void
      */
     public function testConstructor() : void
     {
-        $uploadedFile = new UploadedFile($this->stream);
+        $stream = $this->createStream('blah');
+        $uploadedFile = new UploadedFile($stream);
 
         $this->assertInstanceOf(UploadedFileInterface::class, $uploadedFile);
-    }
-
-    /**
-     * @return void
-     */
-    public function testGetStream() : void
-    {
-        $uploadedFile = new UploadedFile($this->stream);
-
-        $this->assertEquals($this->stream, $uploadedFile->getStream());
-    }
-
-    /**
-     * @return void
-     */
-    public function testGetSize() : void
-    {
-        $size = \random_int(\PHP_INT_MIN, \PHP_INT_MAX);
-
-        $uploadedFile = new UploadedFile($this->stream, $size);
-
-        $this->assertEquals($size, $uploadedFile->getSize());
-    }
-
-    /**
-     * @return void
-     */
-    public function testGetError() : void
-    {
-        $error = \UPLOAD_ERR_NO_FILE;
-
-        $uploadedFile = new UploadedFile($this->stream, null, $error);
-
-        $this->assertEquals($error, $uploadedFile->getError());
-    }
-
-    /**
-     * @return void
-     */
-    public function testGetClientFilename() : void
-    {
-        $filename = 'photo.jpeg';
-
-        $uploadedFile = new UploadedFile($this->stream, null, \UPLOAD_ERR_OK, $filename);
-
-        $this->assertEquals($filename, $uploadedFile->getClientFilename());
-    }
-
-    /**
-     * @return void
-     */
-    public function testGetClientMediaType() : void
-    {
-        $mediatype = 'image/jpeg';
-
-        $uploadedFile = new UploadedFile($this->stream, null, \UPLOAD_ERR_OK, null, $mediatype);
-
-        $this->assertEquals($mediatype, $uploadedFile->getClientMediaType());
-    }
-
-    /**
-     * @return void
-     */
-    public function testGetDefaultSize() : void
-    {
-        $uploadedFile = new UploadedFile($this->stream);
-
-        $this->assertEquals($this->stream->getSize(), $uploadedFile->getSize());
-    }
-
-    /**
-     * @return void
-     */
-    public function testGetDefaultError() : void
-    {
-        $uploadedFile = new UploadedFile($this->stream);
-
-        $this->assertEquals(\UPLOAD_ERR_OK, $uploadedFile->getError());
-    }
-
-    /**
-     * @return void
-     */
-    public function testGetDefaultClientFilename() : void
-    {
-        $uploadedFile = new UploadedFile($this->stream);
-
+        $this->assertSame($stream, $uploadedFile->getStream());
+        $this->assertNull($uploadedFile->getSize());
+        $this->assertSame(\UPLOAD_ERR_OK, $uploadedFile->getError());
         $this->assertNull($uploadedFile->getClientFilename());
-    }
-
-    /**
-     * @return void
-     */
-    public function testGetDefaultClientMediaType() : void
-    {
-        $uploadedFile = new UploadedFile($this->stream);
-
         $this->assertNull($uploadedFile->getClientMediaType());
     }
 
     /**
      * @return void
      */
-    public function testMoveTo() : void
+    public function testConstructorWithOptionalParameters() : void
     {
-        $content = 'foo';
-        $this->stream->write($content);
+        $stream = $this->createStream('blah');
+        $uploadedFile = new UploadedFile($stream, 100, \UPLOAD_ERR_OK, 'foo', 'bar');
 
-        $uploadedFile = new UploadedFile($this->stream);
-        $uploadedFile->moveTo($this->targetPath);
+        $this->assertInstanceOf(UploadedFileInterface::class, $uploadedFile);
+        $this->assertSame($stream, $uploadedFile->getStream());
+        $this->assertSame(100, $uploadedFile->getSize());
+        $this->assertSame(\UPLOAD_ERR_OK, $uploadedFile->getError());
+        $this->assertSame('foo', $uploadedFile->getClientFilename());
+        $this->assertSame('bar', $uploadedFile->getClientMediaType());
+    }
 
-        $this->assertFileExists($this->targetPath);
-        $this->assertEquals($content, \file_get_contents($this->targetPath));
+    /**
+     * @return void
+     */
+    public function testConstructorWithInvalidFile() : void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid uploaded file');
+
+        new UploadedFile(null);
+    }
+
+    /**
+     * @return void
+     */
+    public function testMove() : void
+    {
+        $stream = $this->createStream('foo');
+        $uploadedFile = new UploadedFile($stream);
+
+        $targetPath = $this->createFile();
+        $uploadedFile->moveTo($targetPath);
+
+        $this->assertStringEqualsFile($targetPath, 'foo');
     }
 
     /**
@@ -181,24 +79,71 @@ class UploadedFileTest extends TestCase
      */
     public function testReWrite() : void
     {
-        $content = 'qux';
-        $this->stream->write($content);
+        $stream = $this->createStream('foo');
+        $uploadedFile = new UploadedFile($stream);
 
-        \file_put_contents($this->targetPath, "foo\nbar\nbaz");
+        $targetPath = $this->createFile('bar');
+        $uploadedFile->moveTo($targetPath);
 
-        $uploadedFile = new UploadedFile($this->stream);
-        $uploadedFile->moveTo($this->targetPath);
+        $this->assertStringEqualsFile($targetPath, 'foo');
+    }
 
-        $this->assertEquals($content, \file_get_contents($this->targetPath));
+    /**
+     * @dataProvider errorCodeProvider
+     *
+     * @return void
+     */
+    public function testMoveWithError($error) : void
+    {
+        $stream = $this->createStream();
+        $uploadedFile = new UploadedFile($stream, null, $error);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('The uploaded file cannot be moved due to the error #' . $error);
+
+        $uploadedFile->moveTo('/');
     }
 
     /**
      * @return void
      */
-    public function testGetStreamAfterMoveTo() : void
+    public function testReMove() : void
     {
-        $uploadedFile = new UploadedFile($this->stream);
-        $uploadedFile->moveTo($this->targetPath);
+        $stream = $this->createStream();
+        $targetPath = $this->createFile();
+        $uploadedFile = new UploadedFile($stream);
+        $uploadedFile->moveTo($targetPath);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('The uploaded file already moved');
+
+        $uploadedFile->moveTo('/');
+    }
+
+    /**
+     * @return void
+     */
+    public function testMoveToNowhere() : void
+    {
+        $stream = $this->createStream();
+        $uploadedFile = new UploadedFile($stream);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('The uploaded file cannot be moved because directory "/" is not available');
+
+        $uploadedFile->moveTo('/');
+    }
+
+    /**
+     * @return void
+     */
+    public function testGetMovedStream() : void
+    {
+        $stream = $this->createStream();
+        $uploadedFile = new UploadedFile($stream);
+
+        $targetPath = $this->createFile();
+        $uploadedFile->moveTo($targetPath);
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('The uploaded file already moved');
@@ -207,57 +152,28 @@ class UploadedFileTest extends TestCase
     }
 
     /**
-     * @return void
-     */
-    public function testReMove() : void
-    {
-        $uploadedFile = new UploadedFile($this->stream);
-        $uploadedFile->moveTo($this->targetPath);
-
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('The uploaded file already moved');
-
-        $uploadedFile->moveTo($this->targetPath);
-    }
-
-    /**
-     * @dataProvider errorProvider
+     * @dataProvider errorCodeProvider
      *
      * @return void
      */
-    public function testMoveToWithError($error) : void
+    public function testGetStreamWithError($error) : void
     {
-        $uploadedFile = new UploadedFile($this->stream, null, $error);
+        $stream = $this->createStream();
+        $uploadedFile = new UploadedFile($stream, null, $error);
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('The uploaded file cannot be moved due to the error #' . $error);
+        $this->expectExceptionMessage(\sprintf(
+            'The uploaded file does not have a stream due to the error #%d',
+            $error
+        ));
 
-        $uploadedFile->moveTo($this->targetPath);
+        $uploadedFile->getStream();
     }
-
-    /**
-     * @return void
-     */
-    public function testMoveToNonExistentDirectory() : void
-    {
-        $targetPath = $this->targetPath . '/d';
-        $uploadedFile = new UploadedFile($this->stream);
-
-        $this->expectException(\InvalidArgumentException::class);
-
-        $this->expectExceptionMessage(
-            \sprintf('The uploaded file cannot be moved because directory "%s" is not available', $this->targetPath)
-        );
-
-        $uploadedFile->moveTo($targetPath);
-    }
-
-    // providers...
 
     /**
      * @return array
      */
-    public function errorProvider() : array
+    public function errorCodeProvider() : array
     {
         return [
             [\UPLOAD_ERR_INI_SIZE],

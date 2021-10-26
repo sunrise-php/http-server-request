@@ -7,7 +7,6 @@ namespace Sunrise\Http\ServerRequest\Tests;
 /**
  * Import classes
  */
-use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestFactoryInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
@@ -17,18 +16,13 @@ use Sunrise\Http\ServerRequest\ServerRequestFactory;
 /**
  * ServerRequestFactoryTest
  */
-class ServerRequestFactoryTest extends TestCase
+class ServerRequestFactoryTest extends AbstractTestCase
 {
-
-    /**
-     * @var array
-     */
-    private $tmpfiles = [];
 
     /**
      * @return void
      */
-    public function testConstructor() : void
+    public function testContracts() : void
     {
         $factory = new ServerRequestFactory();
 
@@ -66,18 +60,18 @@ class ServerRequestFactoryTest extends TestCase
     }
 
     /**
-     * @return void
-     *
      * @runInSeparateProcess
+     *
+     * @return void
      */
     public function testCreateServerRequestFromGlobals() : void
     {
         $file = [
-            'tmp_name' => $this->tmpfile(),
+            'tmp_name' => $this->createStream()->getMetadata('uri'),
             'size' => 1,
             'error' => \UPLOAD_ERR_OK,
-            'name' => '10482301-2DB0-473A-8881-C6288945AD0B',
-            'type' => '1408315D-36BF-4201-952C-CB07C616313C',
+            'name' => '10482301-2db0-473a-8881-c6288945ad0b',
+            'type' => '1408315d-36bf-4201-952c-cb07c616313c',
         ];
 
         $_SERVER = ['foo'  => 'bar'];
@@ -149,17 +143,17 @@ class ServerRequestFactoryTest extends TestCase
      */
     public function testCreateServerRequestFromGlobalsWithUploadedFiles() : void
     {
-        $files['foo']['tmp_name'] = $this->tmpfile();
+        $files['foo']['tmp_name'] = $this->createStream()->getMetadata('uri');
         $files['foo']['size'] = 100;
         $files['foo']['error'] = \UPLOAD_ERR_OK;
-        $files['foo']['name'] = '8832D847-FE04-4E86-B933-9E74D109CD9B';
-        $files['foo']['type'] = '3A7B7995-2900-4834-B165-1DE8EDE90587';
+        $files['foo']['name'] = '8832d847-fe04-4e86-b933-9e74d109cd9b';
+        $files['foo']['type'] = '3a7b7995-2900-4834-b165-1de8ede90587';
 
-        $files['bar']['tmp_name'][0] = $this->tmpfile();
+        $files['bar']['tmp_name'][0] = $this->createStream()->getMetadata('uri');
         $files['bar']['size'][0] = 200;
         $files['bar']['error'][0] = \UPLOAD_ERR_OK;
-        $files['bar']['name'][0] = '4E7D2E48-90F4-477C-8859-5F69D29835C4';
-        $files['bar']['type'][0] = 'C53D3703-63D7-409A-822C-6EE1424023B2';
+        $files['bar']['name'][0] = '4e7d2e48-90f4-477c-8859-5f69d29835c4';
+        $files['bar']['type'][0] = 'c53d3703-63d7-409a-822c-6ee1424023b2';
 
         $request = ServerRequestFactory::fromGlobals([], [], [], $files, []);
         $uploadedFiles = $request->getUploadedFiles();
@@ -186,9 +180,9 @@ class ServerRequestFactoryTest extends TestCase
             'foo' => [
                 'error' => \UPLOAD_ERR_NO_FILE,
                 'size' => 100,
-                'tmp_name' => $this->tmpfile(),
-                'name' => '12E3EE6C-7BA7-432A-88D7-8D15405CFEB8',
-                'type' => 'F01CBCD9-9112-4267-8309-B41DAF6DA57F',
+                'tmp_name' => $this->createStream()->getMetadata('uri'),
+                'name' => '12e3ee6c-7ba7-432a-88d7-8d15405cfeb8',
+                'type' => 'f01cbcd9-9112-4267-8309-b41daf6da57f',
             ],
         ];
 
@@ -198,13 +192,13 @@ class ServerRequestFactoryTest extends TestCase
     }
 
     /**
+     * @dataProvider headersFromGlobalsProvider
+     *
      * @param array<string, string> $serverParams
      * @param mixed $expectedValue
      * @param string|null $key
      *
      * @return void
-     *
-     * @dataProvider headersFromGlobalsProvider
      */
     public function testHeadersFromGlobals($serverParams, $expectedValue, $key = null) : void
     {
@@ -213,12 +207,12 @@ class ServerRequestFactoryTest extends TestCase
     }
 
     /**
+     * @dataProvider protocolVersionFromGlobalsProvider
+     *
      * @param array<string, string> $serverParams
      * @param mixed $expectedValue
      *
      * @return void
-     *
-     * @dataProvider protocolVersionFromGlobalsProvider
      */
     public function testProtocolVersionFromGlobals($serverParams, $expectedValue) : void
     {
@@ -227,12 +221,12 @@ class ServerRequestFactoryTest extends TestCase
     }
 
     /**
+     * @dataProvider methodFromGlobalsProvider
+     *
      * @param array<string, string> $serverParams
      * @param mixed $expectedValue
      *
      * @return void
-     *
-     * @dataProvider methodFromGlobalsProvider
      */
     public function testMethodFromGlobals($serverParams, $expectedValue) : void
     {
@@ -241,12 +235,12 @@ class ServerRequestFactoryTest extends TestCase
     }
 
     /**
+     * @dataProvider uriFromGlobalsProvider
+     *
      * @param array<string, string> $serverParams
      * @param mixed $expectedValue
      *
      * @return void
-     *
-     * @dataProvider uriFromGlobalsProvider
      */
     public function testUriFromGlobals($serverParams, $expectedValue) : void
     {
@@ -382,31 +376,5 @@ class ServerRequestFactoryTest extends TestCase
                 'http://localhost/',
             ],
         ];
-    }
-
-    /**
-     * @return void
-     */
-    protected function tearDown() : void
-    {
-        $tmpfiles = $this->tmpfiles;
-        $this->tmpfiles = [];
-
-        foreach ($tmpfiles as $tmpfile) {
-            @\unlink($tmpfile);
-        }
-    }
-
-    /**
-     * @return string
-     */
-    private function tmpfile() : string
-    {
-        $folder = \sys_get_temp_dir();
-        $tmpfile = \tempnam($folder, 'sunrise');
-
-        $this->tmpfiles[] = $tmpfile;
-
-        return $tmpfile;
     }
 }

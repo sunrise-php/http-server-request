@@ -7,16 +7,14 @@ namespace Sunrise\Http\ServerRequest\Tests;
 /**
  * Import classes
  */
-use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\UploadedFileFactoryInterface;
 use Psr\Http\Message\UploadedFileInterface;
 use Sunrise\Http\ServerRequest\UploadedFileFactory;
-use Sunrise\Stream\StreamFactory;
 
 /**
  * UploadedFileFactoryTest
  */
-class UploadedFileFactoryTest extends TestCase
+class UploadedFileFactoryTest extends AbstractTestCase
 {
 
     /**
@@ -34,14 +32,13 @@ class UploadedFileFactoryTest extends TestCase
      */
     public function testCreateUploadedFile() : void
     {
-        $stream = (new StreamFactory)->createStreamFromFile('php://temp/maxmemory:1', 'r+');
-        $stream->write('1');
+        $stream = $this->createStream('foo');
 
         $uploadedFile = (new UploadedFileFactory)->createUploadedFile($stream);
 
         $this->assertInstanceOf(UploadedFileInterface::class, $uploadedFile);
         $this->assertSame($stream, $uploadedFile->getStream());
-        $this->assertSame($stream->getSize(), $uploadedFile->getSize());
+        $this->assertNull($uploadedFile->getSize());
         $this->assertSame(\UPLOAD_ERR_OK, $uploadedFile->getError());
         $this->assertNull($uploadedFile->getClientFilename());
         $this->assertNull($uploadedFile->getClientMediaType());
@@ -52,13 +49,12 @@ class UploadedFileFactoryTest extends TestCase
      */
     public function testCreateUploadedFileWithOptionalParameters() : void
     {
-        $stream = (new StreamFactory)->createStreamFromFile('php://temp/maxmemory:1', 'r+');
-        $stream->write('1');
+        $stream = $this->createStream('foo');
 
         $size = 100;
         $error = \UPLOAD_ERR_OK;
-        $filename = '47CE46D2-9B62-431E-81E0-DE9064F59CE6';
-        $mediatype = 'F769A887-2D5A-4D02-8AFD-0E140D9A6B88';
+        $filename = '47ce46d2-9b62-431e-81e0-de9064f59ce6';
+        $mediatype = 'f769a887-2d5a-4d02-8afd-0e140d9a6b88';
 
         $uploadedFile = (new UploadedFileFactory)->createUploadedFile(
             $stream,
@@ -68,10 +64,10 @@ class UploadedFileFactoryTest extends TestCase
             $mediatype
         );
 
-        $this->assertEquals($stream, $uploadedFile->getStream());
-        $this->assertEquals($size, $uploadedFile->getSize());
-        $this->assertEquals($error, $uploadedFile->getError());
-        $this->assertEquals($filename, $uploadedFile->getClientFilename());
-        $this->assertEquals($mediatype, $uploadedFile->getClientMediaType());
+        $this->assertSame($stream, $uploadedFile->getStream());
+        $this->assertSame($size, $uploadedFile->getSize());
+        $this->assertSame($error, $uploadedFile->getError());
+        $this->assertSame($filename, $uploadedFile->getClientFilename());
+        $this->assertSame($mediatype, $uploadedFile->getClientMediaType());
     }
 }

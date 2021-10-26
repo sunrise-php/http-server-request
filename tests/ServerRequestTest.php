@@ -7,17 +7,15 @@ namespace Sunrise\Http\ServerRequest\Tests;
 /**
  * Import classes
  */
-use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Sunrise\Http\Message\Request;
 use Sunrise\Http\ServerRequest\ServerRequest;
 use Sunrise\Http\ServerRequest\UploadedFile;
-use Sunrise\Stream\StreamFactory;
 
 /**
  * ServerRequestTest
  */
-class ServerRequestTest extends TestCase
+class ServerRequestTest extends AbstractTestCase
 {
 
     /**
@@ -27,8 +25,8 @@ class ServerRequestTest extends TestCase
     {
         $request = new ServerRequest();
 
-        $this->assertInstanceOf(ServerRequestInterface::class, $request);
         $this->assertInstanceOf(Request::class, $request);
+        $this->assertInstanceOf(ServerRequestInterface::class, $request);
     }
 
     /**
@@ -36,11 +34,10 @@ class ServerRequestTest extends TestCase
      */
     public function testConstructor() : void
     {
-        $stream = (new StreamFactory)->createStream();
-
+        $stream = $this->createStream();
         $uploadedFile = new UploadedFile($stream);
 
-        $request = new ServerRequest(
+        $dataset = [
             // method
             'POST',
             // URI
@@ -64,21 +61,23 @@ class ServerRequestTest extends TestCase
             // parsed body
             ['qux' => 'quux'],
             // attributes
-            ['quux' => 'quuux']
-        );
+            ['quux' => 'quuux'],
+        ];
 
-        $this->assertSame('POST', $request->getMethod());
-        $this->assertSame('http://localhost:8000/foo?bar', (string) $request->getUri());
-        $this->assertSame(['X-Foo' => ['bar'], 'Host' => ['localhost:8000']], $request->getHeaders());
-        $this->assertSame($stream, $request->getBody());
-        $this->assertSame('/bar?baz', $request->getRequestTarget());
-        $this->assertSame('2.0', $request->getProtocolVersion());
-        $this->assertSame(['foo' => 'bar'], $request->getServerParams());
-        $this->assertSame(['bar' => 'baz'], $request->getQueryParams());
-        $this->assertSame(['baz' => 'bat'], $request->getCookieParams());
-        $this->assertSame(['bat' => $uploadedFile], $request->getUploadedFiles());
-        $this->assertSame(['qux' => 'quux'], $request->getParsedBody());
-        $this->assertSame(['quux' => 'quuux'], $request->getAttributes());
+        $request = new ServerRequest(...$dataset);
+
+        $this->assertSame($dataset[0], $request->getMethod());
+        $this->assertSame($dataset[1], (string) $request->getUri());
+        $this->assertSame($dataset[2]['X-Foo'], $request->getHeaderLine('X-Foo'));
+        $this->assertSame($dataset[3], $request->getBody());
+        $this->assertSame($dataset[4], $request->getRequestTarget());
+        $this->assertSame($dataset[5], $request->getProtocolVersion());
+        $this->assertSame($dataset[6], $request->getServerParams());
+        $this->assertSame($dataset[7], $request->getQueryParams());
+        $this->assertSame($dataset[8], $request->getCookieParams());
+        $this->assertSame($dataset[9], $request->getUploadedFiles());
+        $this->assertSame($dataset[10], $request->getParsedBody());
+        $this->assertSame($dataset[11], $request->getAttributes());
     }
 
     /**
@@ -89,18 +88,18 @@ class ServerRequestTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid uploaded files');
 
-        new ServerRequest(
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            [],
-            [],
-            [],
-            ['foo' => 'bar']
-        );
+        new ServerRequest(null, null, null, null, null, null, [], [], [], ['foo' => 'bar']);
+    }
+
+    /**
+     * @return void
+     */
+    public function testConstructorWithInvalidParsedBody() : void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid parsed body');
+
+        new ServerRequest(null, null, null, null, null, null, [], [], [], [], \STDOUT);
     }
 
     /**
@@ -142,10 +141,7 @@ class ServerRequestTest extends TestCase
      */
     public function testSetUploadedFiles() : void
     {
-        $stream = (new StreamFactory)->createStreamFromFile('php://memory', 'rb');
-        $stream->close();
-
-        $uploadedFiles = ['foo' => new UploadedFile($stream)];
+        $uploadedFiles = ['foo' => new UploadedFile($this->createStream())];
 
         $request = new ServerRequest();
         $this->assertSame([], $request->getUploadedFiles());
@@ -185,6 +181,19 @@ class ServerRequestTest extends TestCase
         $this->assertNotSame($request, $clone);
         $this->assertNull($request->getParsedBody());
         $this->assertSame($parsedBody, $clone->getParsedBody());
+    }
+
+    /**
+     * @return void
+     */
+    public function testSetInvalidParsedBody() : void
+    {
+        $request = new ServerRequest();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid parsed body');
+
+        $request->withParsedBody(\STDOUT);
     }
 
     /**
