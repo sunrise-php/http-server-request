@@ -26,6 +26,8 @@ use InvalidArgumentException;
  */
 use function array_key_exists;
 use function array_walk_recursive;
+use function is_array;
+use function is_object;
 
 /**
  * ServerRequest
@@ -123,7 +125,7 @@ class ServerRequest extends Request implements ServerRequestInterface
         $this->queryParams = $queryParams;
         $this->cookieParams = $cookieParams;
         $this->setUploadedFiles($uploadedFiles);
-        $this->parsedBody = $parsedBody;
+        $this->setParsedBody($parsedBody);
         $this->attributes = $attributes;
     }
 
@@ -208,7 +210,7 @@ class ServerRequest extends Request implements ServerRequestInterface
     public function withParsedBody($parsedBody) : ServerRequestInterface
     {
         $clone = clone $this;
-        $clone->parsedBody = $parsedBody;
+        $clone->setParsedBody($parsedBody);
 
         return $clone;
     }
@@ -273,6 +275,22 @@ class ServerRequest extends Request implements ServerRequestInterface
     }
 
     /**
+     * Sets the given parsed body to the request
+     *
+     * @param mixed $data
+     *
+     * @return void
+     *
+     * @throws InvalidArgumentException
+     */
+    protected function setParsedBody($data) : void
+    {
+        $this->validateParsedBody($data);
+
+        $this->parsedBody = $data;
+    }
+
+    /**
      * Validates the given uploaded files
      *
      * @param array $files
@@ -292,5 +310,25 @@ class ServerRequest extends Request implements ServerRequestInterface
                 throw new InvalidArgumentException('Invalid uploaded files');
             }
         });
+    }
+
+    /**
+     * Validates the given parsed body
+     *
+     * @param mixed $data
+     *
+     * @return void
+     *
+     * @throws InvalidArgumentException
+     */
+    protected function validateParsedBody($data) : void
+    {
+        if (null === $data) {
+            return;
+        }
+
+        if (!is_array($data) && !is_object($data)) {
+            throw new InvalidArgumentException('Invalid parsed body');
+        }
     }
 }

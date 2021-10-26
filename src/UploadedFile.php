@@ -94,10 +94,6 @@ class UploadedFile implements UploadedFileInterface
     ) {
         if (UPLOAD_ERR_OK === $error) {
             $this->stream = $this->createStream($file);
-
-            // if the file size wasn't specified,
-            // we can take the size from the stream.
-            $size = $size ?? $this->stream->getSize();
         }
 
         $this->size = $size;
