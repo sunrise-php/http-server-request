@@ -203,14 +203,14 @@ class ServerRequestTest extends AbstractTestCase
     {
         $request = new ServerRequest();
         $this->assertSame([], $request->getAttributes());
-        $this->assertSame(null, $request->getAttribute('foo'));
-        $this->assertSame(false, $request->getAttribute('foo', false));
+        $this->assertNull($request->getAttribute('foo'));
+        $this->assertFalse($request->getAttribute('foo', false));
 
         $clone = $request->withAttribute('foo', 'bar');
         $this->assertInstanceOf(ServerRequestInterface::class, $clone);
         $this->assertNotSame($request, $clone);
         $this->assertSame([], $request->getAttributes());
-        $this->assertSame(null, $request->getAttribute('foo'));
+        $this->assertNull($request->getAttribute('foo'));
         $this->assertSame(['foo' => 'bar'], $clone->getAttributes());
         $this->assertSame('bar', $clone->getAttribute('foo'));
     }
@@ -228,6 +228,6 @@ class ServerRequestTest extends AbstractTestCase
         $this->assertSame(['foo' => 'bar'], $request->getAttributes());
         $this->assertSame('bar', $request->getAttribute('foo'));
         $this->assertSame([], $clone->getAttributes());
-        $this->assertSame(null, $clone->getAttribute('foo'));
+        $this->assertNull($clone->getAttribute('foo'));
     }
 }
