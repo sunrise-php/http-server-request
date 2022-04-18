@@ -31,6 +31,7 @@ use function sprintf;
 /**
  * Import constants
  */
+use const Sunrise\Http\ServerRequest\UPLOAD_ERRORS;
 use const UPLOAD_ERR_OK;
 
 /**
@@ -61,6 +62,13 @@ class UploadedFile implements UploadedFileInterface
      * @var int
      */
     protected $error;
+
+    /**
+     * The file's error message
+     *
+     * @var string
+     */
+    protected $errorMessage;
 
     /**
      * The file name
@@ -99,6 +107,10 @@ class UploadedFile implements UploadedFileInterface
         $this->size = $size;
         $this->error = $error;
 
+        /** @var string */
+        $errorMessage = UPLOAD_ERRORS[$this->error] ?? 'Unknown error';
+        $this->errorMessage = $errorMessage;
+
         $this->clientFilename = $clientFilename;
         $this->clientMediaType = $clientMediaType;
     }
@@ -112,8 +124,9 @@ class UploadedFile implements UploadedFileInterface
     {
         if (UPLOAD_ERR_OK <> $this->error) {
             throw new RuntimeException(sprintf(
-                'The uploaded file does not have a stream due to the error #%d',
-                $this->error
+                'The uploaded file has no a stream due to the error #%d (%s)',
+                $this->error,
+                $this->errorMessage
             ));
         }
 
@@ -134,8 +147,9 @@ class UploadedFile implements UploadedFileInterface
     {
         if (UPLOAD_ERR_OK <> $this->error) {
             throw new RuntimeException(sprintf(
-                'The uploaded file cannot be moved due to the error #%d',
-                $this->error
+                'The uploaded file cannot be moved due to the error #%d (%s)',
+                $this->error,
+                $this->errorMessage
             ));
         }
 
