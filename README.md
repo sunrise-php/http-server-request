@@ -1,4 +1,4 @@
-## HTTP server request wrapper for PHP 7.1+ based on PSR-7 and PSR-17
+# HTTP server request wrapper for PHP 7.1+ based on PSR-7 and PSR-17
 
 [![Build Status](https://circleci.com/gh/sunrise-php/http-server-request.svg?style=shield)](https://circleci.com/gh/sunrise-php/http-server-request)
 [![Code Coverage](https://scrutinizer-ci.com/g/sunrise-php/http-server-request/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/sunrise-php/http-server-request/?branch=master)
@@ -25,15 +25,15 @@ $request = ServerRequestFactory::fromGlobals();
 // just use PSR-7 methods...
 ```
 
-#### HTTP headers as objects
-
-* https://github.com/sunrise-php/http-header-kit
-
-#### Related PSR-7 packages
+#### Related packages
 
 * https://github.com/sunrise-php/http-message
 * https://github.com/sunrise-php/stream
 * https://github.com/sunrise-php/uri
+
+#### Headers as objects
+
+* https://github.com/sunrise-php/http-header-kit
 
 ---
 
