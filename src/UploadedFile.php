@@ -147,7 +147,7 @@ class UploadedFile implements UploadedFileInterface
 
         if (!is_dir($folder) || !is_writeable($folder)) {
             throw new InvalidArgumentException(sprintf(
-                'The uploaded file cannot be moved because directory "%s" is not available',
+                'The uploaded file cannot be moved because the directory "%s" is not available',
                 $folder
             ));
         }
@@ -200,7 +200,7 @@ class UploadedFile implements UploadedFileInterface
     /**
      * Creates a stream from the given file
      *
-     * @param StreamInterface|string $file
+     * @param mixed $file
      *
      * @return StreamInterface
      *

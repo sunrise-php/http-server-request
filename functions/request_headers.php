@@ -23,7 +23,7 @@ use function ucwords;
 /**
  * Gets the request headers from the given server parameters
  *
- * @param array<string, mixed> $server
+ * @param array $server
  *
  * @return array<string, string>
  *

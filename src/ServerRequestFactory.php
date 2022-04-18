@@ -26,7 +26,7 @@ class ServerRequestFactory implements ServerRequestFactoryInterface
 {
 
     /**
-     * Creates the server request instance from superglobals variables
+     * Creates a new request from superglobals variables
      *
      * @param array|null $serverParams
      * @param array|null $queryParams
@@ -46,11 +46,11 @@ class ServerRequestFactory implements ServerRequestFactoryInterface
         ?array $uploadedFiles = null,
         ?array $parsedBody = null
     ) : ServerRequestInterface {
-        $serverParams  = $serverParams  ?? $_SERVER ?? [];
-        $queryParams   = $queryParams   ?? $_GET    ?? [];
-        $cookieParams  = $cookieParams  ?? $_COOKIE ?? [];
-        $uploadedFiles = $uploadedFiles ?? $_FILES  ?? [];
-        $parsedBody    = $parsedBody    ?? $_POST   ?? [];
+        $serverParams  = $serverParams  ?? $_SERVER;
+        $queryParams   = $queryParams   ?? $_GET;
+        $cookieParams  = $cookieParams  ?? $_COOKIE;
+        $uploadedFiles = $uploadedFiles ?? $_FILES;
+        $parsedBody    = $parsedBody    ?? $_POST;
 
         return new ServerRequest(
             request_method($serverParams),

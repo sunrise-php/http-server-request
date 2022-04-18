@@ -20,7 +20,7 @@ use function sscanf;
 /**
  * Gets the request protocol version from the given server parameters
  *
- * @param array<string, mixed> $server
+ * @param array $server
  *
  * @return string
  *

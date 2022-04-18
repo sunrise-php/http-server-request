@@ -33,9 +33,10 @@ use function stream_copy_to_stream;
  */
 function request_body() : StreamInterface
 {
+    $input = fopen('php://input', 'rb');
     $resource = fopen('php://temp', 'r+b');
 
-    stream_copy_to_stream(fopen('php://input', 'rb'), $resource);
+    stream_copy_to_stream($input, $resource);
 
     rewind($resource);
 

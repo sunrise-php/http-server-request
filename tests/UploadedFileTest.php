@@ -129,7 +129,7 @@ class UploadedFileTest extends AbstractTestCase
         $uploadedFile = new UploadedFile($stream);
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('The uploaded file cannot be moved because directory "/" is not available');
+        $this->expectExceptionMessage('The uploaded file cannot be moved because the directory "/" is not available');
 
         $uploadedFile->moveTo('/');
     }

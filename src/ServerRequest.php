@@ -14,12 +14,12 @@ namespace Sunrise\Http\ServerRequest;
 /**
  * Import classes
  */
+use InvalidArgumentException;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UploadedFileInterface;
 use Psr\Http\Message\UriInterface;
 use Sunrise\Http\Message\Request;
-use InvalidArgumentException;
 
 /**
  * Import functions
@@ -38,42 +38,42 @@ class ServerRequest extends Request implements ServerRequestInterface
 {
 
     /**
-     * The server parameters
+     * The server's parameters
      *
      * @var array
      */
     protected $serverParams;
 
     /**
-     * The request query parameters
+     * The request's query parameters
      *
      * @var array
      */
     protected $queryParams;
 
     /**
-     * The request cookie parameters
+     * The request's cookie parameters
      *
      * @var array
      */
     protected $cookieParams;
 
     /**
-     * The request uploaded files
+     * The request's uploaded files
      *
      * @var array
      */
     protected $uploadedFiles;
 
     /**
-     * The request parsed body
+     * The request's parsed body
      *
-     * @var mixed
+     * @var array|object|null
      */
     protected $parsedBody;
 
     /**
-     * The request attributes
+     * The request's attributes
      *
      * @var array
      */
@@ -84,7 +84,7 @@ class ServerRequest extends Request implements ServerRequestInterface
      *
      * @param string|null $method
      * @param string|UriInterface|null $uri
-     * @param array<string, string|array<string>>|null $headers
+     * @param array<string, string|string[]>|null $headers
      * @param StreamInterface|null $body
      * @param string|null $requestTarget
      * @param string|null $protocolVersion
@@ -93,10 +93,8 @@ class ServerRequest extends Request implements ServerRequestInterface
      * @param array $queryParams
      * @param array $cookieParams
      * @param array $uploadedFiles
-     * @param mixed $parsedBody
+     * @param array|object|null $parsedBody
      * @param array $attributes
-     *
-     * @throws InvalidArgumentException
      */
     public function __construct(
         ?string $method = null,
@@ -147,6 +145,8 @@ class ServerRequest extends Request implements ServerRequestInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @psalm-suppress ParamNameMismatch
      */
     public function withQueryParams(array $queryParams) : ServerRequestInterface
     {
@@ -166,6 +166,8 @@ class ServerRequest extends Request implements ServerRequestInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @psalm-suppress ParamNameMismatch
      */
     public function withCookieParams(array $cookieParams) : ServerRequestInterface
     {
@@ -185,8 +187,6 @@ class ServerRequest extends Request implements ServerRequestInterface
 
     /**
      * {@inheritdoc}
-     *
-     * @throws InvalidArgumentException
      */
     public function withUploadedFiles(array $uploadedFiles) : ServerRequestInterface
     {
@@ -206,6 +206,8 @@ class ServerRequest extends Request implements ServerRequestInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @psalm-suppress ParamNameMismatch
      */
     public function withParsedBody($parsedBody) : ServerRequestInterface
     {
@@ -252,7 +254,6 @@ class ServerRequest extends Request implements ServerRequestInterface
     public function withoutAttribute($name) : ServerRequestInterface
     {
         $clone = clone $this;
-
         unset($clone->attributes[$name]);
 
         return $clone;
@@ -264,8 +265,6 @@ class ServerRequest extends Request implements ServerRequestInterface
      * @param array $files
      *
      * @return void
-     *
-     * @throws InvalidArgumentException
      */
     protected function setUploadedFiles(array $files) : void
     {
@@ -277,11 +276,9 @@ class ServerRequest extends Request implements ServerRequestInterface
     /**
      * Sets the given parsed body to the request
      *
-     * @param mixed $data
+     * @param array|object|null $data
      *
      * @return void
-     *
-     * @throws InvalidArgumentException
      */
     protected function setParsedBody($data) : void
     {
@@ -305,7 +302,14 @@ class ServerRequest extends Request implements ServerRequestInterface
             return;
         }
 
-        array_walk_recursive($files, function ($file) {
+        /**
+         * @param mixed $file
+         *
+         * @return void
+         *
+         * @psalm-suppress MissingClosureParamType
+         */
+        array_walk_recursive($files, static function ($file) : void {
             if (! ($file instanceof UploadedFileInterface)) {
                 throw new InvalidArgumentException('Invalid uploaded files');
             }
