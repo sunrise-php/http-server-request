@@ -46,6 +46,7 @@
             "Sunrise\\Http\\ServerRequest\\": "src/"
         },
         "files": [
+            "constants/UPLOAD_ERRORS.php",
             "functions/request_body.php",
             "functions/request_files.php",
             "functions/request_headers.php",

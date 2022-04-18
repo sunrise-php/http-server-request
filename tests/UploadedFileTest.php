@@ -12,6 +12,11 @@ use Psr\Http\Message\UploadedFileInterface;
 use Sunrise\Http\ServerRequest\UploadedFile;
 
 /**
+ * Import constants
+ */
+use const Sunrise\Http\ServerRequest\UPLOAD_ERRORS;
+
+/**
  * UploadedFileTest
  */
 class UploadedFileTest extends AbstractTestCase
@@ -99,7 +104,11 @@ class UploadedFileTest extends AbstractTestCase
         $uploadedFile = new UploadedFile($stream, null, $error);
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('The uploaded file cannot be moved due to the error #' . $error);
+        $this->expectExceptionMessage(\sprintf(
+            'The uploaded file cannot be moved due to the error #%d (%s)',
+            $error,
+            UPLOAD_ERRORS[$error] ?? 'Unknown error'
+        ));
 
         $uploadedFile->moveTo('/');
     }
@@ -163,8 +172,9 @@ class UploadedFileTest extends AbstractTestCase
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage(\sprintf(
-            'The uploaded file does not have a stream due to the error #%d',
-            $error
+            'The uploaded file has no a stream due to the error #%d (%s)',
+            $error,
+            UPLOAD_ERRORS[$error] ?? 'Unknown error'
         ));
 
         $uploadedFile->getStream();
