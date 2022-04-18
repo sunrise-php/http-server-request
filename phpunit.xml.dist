@@ -1,5 +1,8 @@
 <?xml version="1.0"?>
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd">
+<phpunit
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd"
+>
     <coverage>
         <include>
             <directory>./functions</directory>
@@ -7,17 +10,8 @@
         </include>
     </coverage>
     <testsuites>
-        <testsuite name="Sunrise.ServerRequest">
+        <testsuite name="sunrise/http-server-request">
             <directory>./tests/</directory>
         </testsuite>
     </testsuites>
-
-    <php>
-        <const name="REQUEST_FACTORY" value="Sunrise\Http\Message\RequestFactory" />
-        <const name="RESPONSE_FACTORY" value="Sunrise\Http\Message\ResponseFactory" />
-        <const name="SERVER_REQUEST_FACTORY" value="Sunrise\Http\ServerRequest\ServerRequestFactory" />
-        <const name="STREAM_FACTORY" value="Sunrise\Stream\StreamFactory" />
-        <const name="UPLOADED_FILE_FACTORY" value="Sunrise\Http\ServerRequest\UploadedFileFactory" />
-        <const name="URI_FACTORY" value="Sunrise\Uri\UriFactory" />
-    </php>
 </phpunit>

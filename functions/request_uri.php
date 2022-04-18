@@ -25,7 +25,7 @@ use function array_key_exists;
 /**
  * Gets the request URI from the given server parameters
  *
- * @param array<string, mixed> $server
+ * @param array $server
  *
  * @return UriInterface
  *
