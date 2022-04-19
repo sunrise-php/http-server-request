@@ -10,6 +10,7 @@ namespace Sunrise\Http\ServerRequest\Tests;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UploadedFileInterface;
 use Sunrise\Http\ServerRequest\UploadedFile;
+use Sunrise\Stream\StreamFactory;
 
 /**
  * Import constants
@@ -27,7 +28,7 @@ class UploadedFileTest extends AbstractTestCase
      */
     public function testConstructor() : void
     {
-        $stream = $this->createStream('blah');
+        $stream = $this->createStream();
         $uploadedFile = new UploadedFile($stream);
 
         $this->assertInstanceOf(UploadedFileInterface::class, $uploadedFile);
@@ -43,12 +44,12 @@ class UploadedFileTest extends AbstractTestCase
      */
     public function testConstructorWithOptionalParameters() : void
     {
-        $stream = $this->createStream('blah');
-        $uploadedFile = new UploadedFile($stream, 100, \UPLOAD_ERR_OK, 'foo', 'bar');
+        $stream = $this->createStream();
+        $uploadedFile = new UploadedFile($stream, 42, \UPLOAD_ERR_OK, 'foo', 'bar');
 
         $this->assertInstanceOf(UploadedFileInterface::class, $uploadedFile);
         $this->assertSame($stream, $uploadedFile->getStream());
-        $this->assertSame(100, $uploadedFile->getSize());
+        $this->assertSame(42, $uploadedFile->getSize());
         $this->assertSame(\UPLOAD_ERR_OK, $uploadedFile->getError());
         $this->assertSame('foo', $uploadedFile->getClientFilename());
         $this->assertSame('bar', $uploadedFile->getClientMediaType());
@@ -72,8 +73,7 @@ class UploadedFileTest extends AbstractTestCase
     {
         $stream = $this->createStream('foo');
         $uploadedFile = new UploadedFile($stream);
-
-        $targetPath = $this->createFile();
+        $targetPath = $this->createStream()->getMetadata('uri');
         $uploadedFile->moveTo($targetPath);
 
         $this->assertStringEqualsFile($targetPath, 'foo');
@@ -86,8 +86,7 @@ class UploadedFileTest extends AbstractTestCase
     {
         $stream = $this->createStream('foo');
         $uploadedFile = new UploadedFile($stream);
-
-        $targetPath = $this->createFile('bar');
+        $targetPath = $this->createStream('bar')->getMetadata('uri');
         $uploadedFile->moveTo($targetPath);
 
         $this->assertStringEqualsFile($targetPath, 'foo');
@@ -119,8 +118,8 @@ class UploadedFileTest extends AbstractTestCase
     public function testReMove() : void
     {
         $stream = $this->createStream();
-        $targetPath = $this->createFile();
         $uploadedFile = new UploadedFile($stream);
+        $targetPath = $this->createStream()->getMetadata('uri');
         $uploadedFile->moveTo($targetPath);
 
         $this->expectException(\RuntimeException::class);
@@ -151,7 +150,7 @@ class UploadedFileTest extends AbstractTestCase
         $stream = $this->createStream();
         $uploadedFile = new UploadedFile($stream);
 
-        $targetPath = $this->createFile();
+        $targetPath = $this->createStream()->getMetadata('uri');
         $uploadedFile->moveTo($targetPath);
 
         $this->expectException(\RuntimeException::class);

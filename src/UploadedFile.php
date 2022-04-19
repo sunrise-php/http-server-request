@@ -43,6 +43,15 @@ class UploadedFile implements UploadedFileInterface
 {
 
     /**
+     * List of upload errors
+     *
+     * @var array<int, string>
+     *
+     * @link https://www.php.net/manual/en/features.file-upload.errors.php
+     */
+    public const UPLOAD_ERRORS = UPLOAD_ERRORS;
+
+    /**
      * The file stream
      *
      * @var StreamInterface|null
@@ -108,7 +117,7 @@ class UploadedFile implements UploadedFileInterface
         $this->error = $error;
 
         /** @var string */
-        $errorMessage = UPLOAD_ERRORS[$this->error] ?? 'Unknown error';
+        $errorMessage = static::UPLOAD_ERRORS[$error] ?? 'Unknown error';
         $this->errorMessage = $errorMessage;
 
         $this->clientFilename = $clientFilename;
@@ -158,7 +167,6 @@ class UploadedFile implements UploadedFileInterface
         }
 
         $folder = dirname($targetPath);
-
         if (!is_dir($folder) || !is_writeable($folder)) {
             throw new InvalidArgumentException(sprintf(
                 'The uploaded file cannot be moved because the directory "%s" is not available',
@@ -170,7 +178,8 @@ class UploadedFile implements UploadedFileInterface
 
         $this->stream->rewind();
         while (!$this->stream->eof()) {
-            $target->write($this->stream->read(4096));
+            $piece = $this->stream->read(4096);
+            $target->write($piece);
         }
 
         $this->stream->close();
