@@ -32,8 +32,7 @@ class UploadedFileFactoryTest extends AbstractTestCase
      */
     public function testCreateUploadedFile() : void
     {
-        $stream = $this->createStream('foo');
-
+        $stream = $this->createStream();
         $uploadedFile = (new UploadedFileFactory)->createUploadedFile($stream);
 
         $this->assertInstanceOf(UploadedFileInterface::class, $uploadedFile);
@@ -49,9 +48,8 @@ class UploadedFileFactoryTest extends AbstractTestCase
      */
     public function testCreateUploadedFileWithOptionalParameters() : void
     {
-        $stream = $this->createStream('foo');
-
-        $size = 100;
+        $stream = $this->createStream();
+        $size = 42;
         $error = \UPLOAD_ERR_OK;
         $filename = '47ce46d2-9b62-431e-81e0-de9064f59ce6';
         $mediatype = 'f769a887-2d5a-4d02-8afd-0e140d9a6b88';

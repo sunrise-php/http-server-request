@@ -141,7 +141,11 @@ class ServerRequestTest extends AbstractTestCase
      */
     public function testSetUploadedFiles() : void
     {
-        $uploadedFiles = ['foo' => new UploadedFile($this->createStream())];
+        $uploadedFiles = [];
+
+        $stream = $this->createStream();
+        $uploadedFile = new UploadedFile($stream);
+        $uploadedFiles['foo'] = $uploadedFile;
 
         $request = new ServerRequest();
         $this->assertSame([], $request->getUploadedFiles());

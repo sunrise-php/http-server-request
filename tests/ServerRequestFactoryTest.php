@@ -66,36 +66,52 @@ class ServerRequestFactoryTest extends AbstractTestCase
      */
     public function testCreateServerRequestFromGlobals() : void
     {
-        $file = [
-            'tmp_name' => $this->createStream()->getMetadata('uri'),
-            'size' => 1,
-            'error' => \UPLOAD_ERR_OK,
-            'name' => '10482301-2db0-473a-8881-c6288945ad0b',
-            'type' => '1408315d-36bf-4201-952c-cb07c616313c',
-        ];
+        $_SERVER = ['foo' => 'bar'];
+        $_GET    = ['bar' => 'baz'];
+        $_POST   = ['baz' => 'bat'];
+        $_COOKIE = ['bat' => 'qux'];
 
-        $_SERVER = ['foo'  => 'bar'];
-        $_GET    = ['bar'  => 'baz'];
-        $_COOKIE = ['baz'  => 'bat'];
-        $_FILES  = ['bat' => $file];
-        $_POST   = ['qux'  => 'quux'];
+        $_FILES['foo']['tmp_name'] = \sys_get_temp_dir() . '/c3036cb9-3806-47e2-b193-2a1ca505b7dd';
+        $_FILES['foo']['size'] = 100;
+        $_FILES['foo']['error'] = \UPLOAD_ERR_OK;
+        $_FILES['foo']['name'] = '8832d847-fe04-4e86-b933-9e74d109cd9b';
+        $_FILES['foo']['type'] = '3a7b7995-2900-4834-b165-1de8ede90587';
 
-        $request = ServerRequestFactory::fromGlobals();
-        $this->assertInstanceOf(ServerRequestInterface::class, $request);
+        $_FILES['bar']['tmp_name'][0] = \sys_get_temp_dir() . '/bed3c541-b32b-44c7-9abe-1c72d182060e';
+        $_FILES['bar']['size'][0] = 200;
+        $_FILES['bar']['error'][0] = \UPLOAD_ERR_OK;
+        $_FILES['bar']['name'][0] = '4e7d2e48-90f4-477c-8859-5f69d29835c4';
+        $_FILES['bar']['type'][0] = 'c53d3703-63d7-409a-822c-6ee1424023b2';
 
-        $this->assertSame($_SERVER, $request->getServerParams());
-        $this->assertSame($_GET, $request->getQueryParams());
-        $this->assertSame($_COOKIE, $request->getCookieParams());
-        $this->assertArrayHasKey('bat', $request->getUploadedFiles());
-        $this->assertSame($_POST, $request->getParsedBody());
+        try {
+            \fclose(\fopen($_FILES['foo']['tmp_name'], 'w+'));
+            \fclose(\fopen($_FILES['bar']['tmp_name'][0], 'w+'));
 
-        $uploadedFile = $request->getUploadedFiles()['bat'];
-        $this->assertInstanceOf(UploadedFileInterface::class, $uploadedFile);
-        $this->assertSame($_FILES['bat']['tmp_name'], $uploadedFile->getStream()->getMetadata('uri'));
-        $this->assertSame($_FILES['bat']['size'], $uploadedFile->getSize());
-        $this->assertSame($_FILES['bat']['error'], $uploadedFile->getError());
-        $this->assertSame($_FILES['bat']['name'], $uploadedFile->getClientFilename());
-        $this->assertSame($_FILES['bat']['type'], $uploadedFile->getClientMediaType());
+            $request = ServerRequestFactory::fromGlobals();
+            $this->assertInstanceOf(ServerRequestInterface::class, $request);
+
+            $this->assertSame($_SERVER, $request->getServerParams());
+            $this->assertSame($_GET, $request->getQueryParams());
+            $this->assertSame($_POST, $request->getParsedBody());
+            $this->assertSame($_COOKIE, $request->getCookieParams());
+
+            $uploadedFiles = $request->getUploadedFiles();
+
+            $this->assertSame($_FILES['foo']['tmp_name'], $uploadedFiles['foo']->getStream()->getMetadata('uri'));
+            $this->assertSame($_FILES['foo']['size'], $uploadedFiles['foo']->getSize());
+            $this->assertSame($_FILES['foo']['error'], $uploadedFiles['foo']->getError());
+            $this->assertSame($_FILES['foo']['name'], $uploadedFiles['foo']->getClientFilename());
+            $this->assertSame($_FILES['foo']['type'], $uploadedFiles['foo']->getClientMediaType());
+
+            $this->assertSame($_FILES['bar']['tmp_name'][0], $uploadedFiles['bar'][0]->getStream()->getMetadata('uri'));
+            $this->assertSame($_FILES['bar']['size'][0], $uploadedFiles['bar'][0]->getSize());
+            $this->assertSame($_FILES['bar']['error'][0], $uploadedFiles['bar'][0]->getError());
+            $this->assertSame($_FILES['bar']['name'][0], $uploadedFiles['bar'][0]->getClientFilename());
+            $this->assertSame($_FILES['bar']['type'][0], $uploadedFiles['bar'][0]->getClientMediaType());
+        } finally {
+            \file_exists($_FILES['foo']['tmp_name']) and \unlink($_FILES['foo']['tmp_name']);
+            \file_exists($_FILES['bar']['tmp_name'][0]) and \unlink($_FILES['bar']['tmp_name'][0]);
+        }
     }
 
     /**
@@ -141,46 +157,13 @@ class ServerRequestFactoryTest extends AbstractTestCase
     /**
      * @return void
      */
-    public function testCreateServerRequestFromGlobalsWithUploadedFiles() : void
-    {
-        $files['foo']['tmp_name'] = $this->createStream()->getMetadata('uri');
-        $files['foo']['size'] = 100;
-        $files['foo']['error'] = \UPLOAD_ERR_OK;
-        $files['foo']['name'] = '8832d847-fe04-4e86-b933-9e74d109cd9b';
-        $files['foo']['type'] = '3a7b7995-2900-4834-b165-1de8ede90587';
-
-        $files['bar']['tmp_name'][0] = $this->createStream()->getMetadata('uri');
-        $files['bar']['size'][0] = 200;
-        $files['bar']['error'][0] = \UPLOAD_ERR_OK;
-        $files['bar']['name'][0] = '4e7d2e48-90f4-477c-8859-5f69d29835c4';
-        $files['bar']['type'][0] = 'c53d3703-63d7-409a-822c-6ee1424023b2';
-
-        $request = ServerRequestFactory::fromGlobals([], [], [], $files, []);
-        $uploadedFiles = $request->getUploadedFiles();
-
-        $this->assertSame($files['foo']['tmp_name'], $uploadedFiles['foo']->getStream()->getMetadata('uri'));
-        $this->assertSame($files['foo']['size'], $uploadedFiles['foo']->getSize());
-        $this->assertSame($files['foo']['error'], $uploadedFiles['foo']->getError());
-        $this->assertSame($files['foo']['name'], $uploadedFiles['foo']->getClientFilename());
-        $this->assertSame($files['foo']['type'], $uploadedFiles['foo']->getClientMediaType());
-
-        $this->assertSame($files['bar']['tmp_name'][0], $uploadedFiles['bar'][0]->getStream()->getMetadata('uri'));
-        $this->assertSame($files['bar']['size'][0], $uploadedFiles['bar'][0]->getSize());
-        $this->assertSame($files['bar']['error'][0], $uploadedFiles['bar'][0]->getError());
-        $this->assertSame($files['bar']['name'][0], $uploadedFiles['bar'][0]->getClientFilename());
-        $this->assertSame($files['bar']['type'][0], $uploadedFiles['bar'][0]->getClientMediaType());
-    }
-
-    /**
-     * @return void
-     */
     public function testCreateServerRequestFromGlobalsWithUploadErrorNoFile() : void
     {
         $files = [
             'foo' => [
                 'error' => \UPLOAD_ERR_NO_FILE,
-                'size' => 100,
-                'tmp_name' => $this->createStream()->getMetadata('uri'),
+                'size' => 0,
+                'tmp_name' => '/d4496a36-6b57-4956-a627-04f1603b57d7',
                 'name' => '12e3ee6c-7ba7-432a-88d7-8d15405cfeb8',
                 'type' => 'f01cbcd9-9112-4267-8309-b41daf6da57f',
             ],
